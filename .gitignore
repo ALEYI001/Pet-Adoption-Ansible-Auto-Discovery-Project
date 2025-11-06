@@ -1,5 +1,7 @@
 # Local .terraform directories
 .terraform/
+pet_team_accessKeys.csv
+pet_team_credentials.csv
 
 # .tfstate files
 *.tfstate

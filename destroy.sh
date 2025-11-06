@@ -2,7 +2,7 @@
 set -euo pipefail  # Enable strict error handling
 
 # Set Variables
-BUCKET_NAME="bucket-pet-adoption6vg"
+BUCKET_NAME="adoptionteam1-bucket"
 AWS_REGION="us-east-1"
 PROFILE="pet_team"
 
