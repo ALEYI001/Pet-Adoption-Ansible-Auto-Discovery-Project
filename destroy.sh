@@ -4,7 +4,7 @@ set -euo pipefail  # Enable strict error handling
 # Set Variables
 BUCKET_NAME="adoptionteam1-bucket"
 AWS_REGION="us-east-1"
-PROFILE="pet_team"
+AWS_PROFILE="pet_team"
 
 # Function to handle errors
 handle_error() {
@@ -12,23 +12,50 @@ handle_error() {
     exit 1
 }
 
-# Empty the S3 Bucket
-echo "🧹 Emptying S3 bucket: $BUCKET_NAME..."
-if aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --profile "$PROFILE" 2>/dev/null; then
-    if ! aws s3 rm "s3://$BUCKET_NAME" --region "$AWS_REGION" --profile "$PROFILE" --recursive; then
-        handle_error "Failed to empty S3 bucket '$BUCKET_NAME'."
-    fi
-    echo "✅ S3 bucket '$BUCKET_NAME' emptied successfully."
-else
-    echo "⚠️  Bucket '$BUCKET_NAME' does not exist. Skipping deletion."
-    exit 0
+cd vault
+echo "Destroying vault infrastructure..."
+terraform destroy -auto-approve
+TF_EXIT_CODE=$?
+if [ "$TF_EXIT_CODE" -ne 0 ]; then
+    echo "❌ Terraform destroy failed with exit code $TF_EXIT_CODE. Aborting S3 bucket deletion."
+    exit $TF_EXIT_CODE
 fi
 
-# Delete the S3 Bucket
-echo "🗑️ Deleting S3 bucket: $BUCKET_NAME..."
-if ! aws s3api delete-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --profile "$PROFILE"; then
-    handle_error "Failed to delete S3 bucket '$BUCKET_NAME'."
-fi
-echo "✅ S3 bucket '$BUCKET_NAME' deleted successfully."
+echo "✅ Terraform destroy completed successfully. Proceeding to S3 cleanup."
+cd ..
 
-echo "🎉 S3 Remote State Bucket Destroyed!"
+# List and delete all object versions in the bucket
+VERSIONS=$(aws s3api list-object-versions \
+    --bucket $BUCKET_NAME \
+    --profile $AWS_PROFILE \
+    --region $AWS_REGION \
+    --output json)
+
+# Delete all objects and their versions
+echo "$VERSIONS" | jq -c '.Versions[]' | while read -r version; do
+    KEY=$(echo "$version" | jq -r '.Key')
+    VERSION_ID=$(echo "$version" | jq -r '.VersionId') 
+    aws s3api delete-object \
+        --bucket $BUCKET_NAME \
+        --key "$KEY" \
+        --version-id "$VERSION_ID" \
+        --profile $AWS_PROFILE \
+        --region $AWS_REGION
+done
+echo "$VERSIONS" | jq -c '.DeleteMarkers[]' | while read -r marker; do
+    KEY=$(echo "$marker" | jq -r '.Key')
+    VERSION_ID=$(echo "$marker" | jq -r '.VersionId') 
+    aws s3api delete-object \
+        --bucket $BUCKET_NAME \
+        --key "$KEY" \
+        --version-id "$VERSION_ID" \
+        --profile $AWS_PROFILE \
+        --region $AWS_REGION
+done    
+
+# Delete the S3 bucket
+aws s3api delete-bucket \
+    --bucket $BUCKET_NAME \
+    --profile $AWS_PROFILE \
+    --region $AWS_REGION   
+echo "Bucket $BUCKET_NAME and all its contents have been deleted."

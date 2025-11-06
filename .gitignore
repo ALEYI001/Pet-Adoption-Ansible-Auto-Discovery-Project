@@ -2,6 +2,9 @@
 .terraform/
 pet_team_accessKeys.csv
 pet_team_credentials.csv
+*.terraform.*
+*.pem
+
 
 # .tfstate files
 *.tfstate

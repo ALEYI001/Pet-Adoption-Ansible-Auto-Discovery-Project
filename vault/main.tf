@@ -1,6 +1,6 @@
 #Team name and project title
 locals {
-  name = "pet-clinic-t1"
+  name = "utility"
 }
 
 # Create a default VPC for vault server
@@ -241,7 +241,6 @@ resource "aws_instance" "vault_server" {
   user_data = templatefile("${path.module}/vault.sh", {
     region              = var.region
     key                 = aws_kms_key.vault_kms.id
-    VAULT_VERSION       = "1.18.3"
     newrelic_api_key    = var.newrelic_api_key
     newrelic_account_id = var.newrelic_account_id
   })
@@ -353,5 +352,4 @@ resource "aws_route53_record" "vault_alias" {
     evaluate_target_health = true
   }
   depends_on = [aws_acm_certificate_validation.acm_cert_validation]
-
 }
