@@ -1,0 +1,25 @@
+variable allcidr {}
+variable cidr {}
+variable "sshport" {}
+variable "httpport" {}
+variable "mysqlport" {}
+variable "sonarqubeport" {}
+variable "pub_sub1" {}
+variable "pub_sub2" {}
+variable "priv_sub1" {}
+variable "priv_sub2" {}
+variable "ami_id" {}
+#variable "redhat" {}
+variable "instance_type" {}
+variable "httpsport" {}
+variable "jenkinsport" {}
+variable "dockerport" {}
+#variable "ubuntu" {}
+variable "zone_id" {}
+variable "db_password" {}
+variable "db_username" {}
+variable "project_name" {}
+variable "nexusport" {}
+variable "newrelicfile" {
+    default = "./newrelic.yml"
+}
