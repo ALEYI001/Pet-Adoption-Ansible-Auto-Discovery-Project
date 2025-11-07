@@ -353,3 +353,180 @@ resource "aws_route53_record" "vault_alias" {
   }
   depends_on = [aws_acm_certificate_validation.acm_cert_validation]
 }
+
+
+
+################################
+# Jenkins Server Infrastructure #
+################################
+
+# IAM role for Jenkins EC2 instance
+resource "aws_iam_role" "instance_role" {
+  name               = "${local.name}-Jenkins-role"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+}
+
+data "aws_iam_policy_document" "ec2_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+# Attach SSM policies to Jenkins role
+resource "aws_iam_role_policy_attachment" "ssm_attach" {
+  role       = aws_iam_role.instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+# Attach Administrator access policy to Jenkins role
+resource "aws_iam_role_policy_attachment" "admin_attach" {
+  role       = aws_iam_role.instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+# Attach role to Jenkins instance profile
+resource "aws_iam_instance_profile" "jenkins_instance_profile" {
+  name = "${local.name}-Jenkins-profile"
+  role = aws_iam_role.instance_role.name
+}
+
+#Security group for jenkins
+resource "aws_security_group" "jenkins_sg" {
+  name        = "${local.name}-jenkins-sg"
+  description = "Allowing inbound traffic"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    description     = "Jenkins-port"
+    protocol        = "tcp"
+    from_port       = 8080
+    to_port         = 8080
+    security_groups = [aws_security_group.jenkins_elb_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${local.name}-jenkins-sg"
+  }
+}
+
+#Security group for jenkins-elb
+resource "aws_security_group" "jenkins_elb_sg" {
+  name        = "${local.name}-jenkins-elb-sg"
+  description = "Allowing inbound traffic"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    description = "Jenkins access"
+    protocol    = "tcp"
+    from_port   = 443
+    to_port     = 443
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${local.name}-jenkins-elb-sg"
+  }
+}
+
+# data source to fetch latest redhat ami
+data "aws_ami" "redhat" {
+  most_recent = true
+  owners      = ["309956199498"] # Red Hat, Inc.
+
+  filter {
+    name   = "name"
+    values = ["RHEL-8.*_HVM-*-x86_64-*-Hourly2-GP2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
+# instance and installing jenkins
+resource "aws_instance" "jenkins" {
+  ami                         = data.aws_ami.redhat.id
+  instance_type               = "t2.medium"
+  subnet_id                   = aws_subnet.public_subnet[1].id
+  key_name                    = aws_key_pair.public_key.key_name
+  vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.jenkins_instance_profile.name
+  associate_public_ip_address = true
+  user_data = templatefile("${path.module}/jenkins.sh", {
+    newrelic_api_key    = var.newrelic_api_key
+    newrelic_account_id = var.newrelic_account_id
+    region              = var.region
+  })
+  tags = {
+    Name = "${local.name}-jenkins"
+  }
+}
+
+#creating Jenkins elb
+resource "aws_elb" "elb-jenkins" {
+  name            = "${local.name}-elb-jenkins"
+  security_groups = [aws_security_group.jenkins_elb_sg.id]
+  subnets         = aws_subnet.public_subnet[*].id
+
+  listener {
+    instance_port      = 8080
+    instance_protocol  = "http"
+    lb_port            = 443
+    lb_protocol        = "https"
+    ssl_certificate_id = aws_acm_certificate.acm-cert.arn
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 29
+    target              = "tcp:8080"
+    interval            = 30
+  }
+
+  instances                   = [aws_instance.jenkins.id]
+  cross_zone_load_balancing   = true
+  idle_timeout                = 400
+  connection_draining         = true
+  connection_draining_timeout = 400
+
+  tags = {
+    Name = "${local.name}-elb-jenkins"
+  }
+}
+
+#creating A jenkins record
+resource "aws_route53_record" "jenkins-record" {
+  zone_id = data.aws_route53_zone.my-hosted-zone.zone_id
+  name    = "jenkins.${var.domain_name}"
+  type    = "A"
+  alias {
+    name                   = aws_elb.elb-jenkins.dns_name
+    zone_id                = aws_elb.elb-jenkins.zone_id
+    evaluate_target_health = true
+  }
+}

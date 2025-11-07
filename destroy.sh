@@ -12,7 +12,7 @@ handle_error() {
     exit 1
 }
 
-cd vault
+cd utility
 echo "Destroying vault infrastructure..."
 terraform destroy -auto-approve
 TF_EXIT_CODE=$?

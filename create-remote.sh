@@ -41,7 +41,7 @@ echo "🌍 S3 Bucket: $BUCKET_NAME"
 
 # provision the vault and jenkins server
 echo "🚀 Provisioning Vault and Jenkins server..."
-cd vault
+cd utility
 terraform init
 terraform fmt -recursive
 terraform apply -auto-approve
