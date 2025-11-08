@@ -24,9 +24,5 @@ echo "${private_key}" > /home/ubuntu/.ssh/id_rsa
 chmod 400 /home/ubuntu/.ssh/id_rsa
 chown ubuntu:ubuntu /home/ubuntu/.ssh/id_rsa
 
-# Disable root login
-sed -i 's/^PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-systemctl restart ssh
-
-# Clean up cached packages
-apt-get clean
+# Set hostname
+hostnamectl set-hostname bastion
