@@ -135,14 +135,14 @@ resource "tls_private_key" "key" {
   rsa_bits  = 4096
 }
 
-resource "local_file" "key" {
+resource "local_file" "private_key" {
   content         = tls_private_key.key.private_key_pem
   filename        = "${var.name}-key.pem"
   file_permission = "640"
 }
 
-resource "aws_key_pair" "key" {
-  key_name   = "${var.name}-key"
+resource "aws_key_pair" "public_key" {
+  key_name   = "${var.name}-public_key"
   public_key = tls_private_key.key.public_key_openssh
 }
  
