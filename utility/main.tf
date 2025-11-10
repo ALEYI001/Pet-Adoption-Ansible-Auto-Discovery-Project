@@ -452,8 +452,9 @@ data "aws_ami" "redhat" {
   owners      = ["309956199498"] # Red Hat, Inc.
 
   filter {
-    name   = "name"
-    values = ["RHEL-8.*_HVM-*-x86_64-*-Hourly2-GP2"]
+    name = "name"
+    # values = ["RHEL-8.*_HVM-*-x86_64-*-Hourly2-GP2"]
+    values = ["RHEL-8.*_HVM-*-x86_64-*"]
   }
 
   filter {
