@@ -452,8 +452,8 @@ data "aws_ami" "redhat" {
   owners      = ["309956199498"] # Red Hat official AWS account
 
   filter {
-    name   = "name"
-    values = ["RHEL-9*_HVM-*-x86_64-*-Hourly2-GP3"] # Note: GP3 is the current AWS default storage type
+    name = "name"
+    values = ["RHEL-8.*_HVM-*-x86_64-*"]
   }
 
   filter {
