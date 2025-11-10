@@ -11,10 +11,10 @@ systemctl start amazon-ssm-agent
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Create directory and save private key securely
-# echo "${private_key}" > /home/ubuntu/private-key.pem
-# chmod 400 /home/ubuntu/private-key.pem
-# chown ubuntu:ubuntu /home/ubuntu/private-key.pem
+# Secure SSH configuration: disable root login and password authentication
+sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+systemctl restart ssh
 
 # Create SSH directory for ec2-user
 mkdir -p /home/ubuntu/.ssh
@@ -26,3 +26,5 @@ chown ubuntu:ubuntu /home/ubuntu/.ssh/id_rsa
 
 # Set hostname
 hostnamectl set-hostname bastion
+
+echo "===== Bastion Host setup complete. Connect via AWS SSM Session Manager. ====="
