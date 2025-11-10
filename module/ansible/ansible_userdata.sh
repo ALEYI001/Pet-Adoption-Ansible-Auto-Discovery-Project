@@ -16,9 +16,6 @@ python3 -m pip install "ansible>=2.15" boto3 botocore
 # # Installing python3 and pip
 # sudo dnf install python3 python3-pip -y
 
-# # Installing ansible
-# sudo dnf install -y ansible-core
-
 # Installing awscli
 sudo yum install wget unzip -y
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"

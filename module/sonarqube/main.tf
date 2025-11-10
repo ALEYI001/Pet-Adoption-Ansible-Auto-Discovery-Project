@@ -1,3 +1,4 @@
+
 #this block creating a vpc
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
@@ -135,14 +136,125 @@ resource "tls_private_key" "key" {
   rsa_bits  = 4096
 }
 
-resource "local_file" "private_key" {
+resource "local_file" "key" {
   content         = tls_private_key.key.private_key_pem
   filename        = "${var.name}-key.pem"
   file_permission = "640"
 }
 
-resource "aws_key_pair" "public_key" {
-  key_name   = "${var.name}-public_key"
+resource "aws_key_pair" "key" {
+  key_name   = "${var.name}-key"
   public_key = tls_private_key.key.public_key_openssh
 }
  
+
+## Security Group for SonarQube Server ##
+resource "aws_security_group" "sonarqube_sg" {
+  name        = "SonarQube-SG"
+  description = "Allow SSH, HTTP (Nginx), and HTTPS access"
+  vpc_id      = aws_vpc.vpc.id
+
+    # Ingress: SSH access from anywhere (for testing)
+  ingress {
+    description = "SSH Access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Ingress: HTTP access for Nginx
+  ingress {
+    description = "HTTP Access for Nginx"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Egress: Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "${var.name}-sonarqube-sg"
+  }
+}
+
+
+# Data block for IAM Policy Document
+data "aws_iam_policy_document" "sonarqube_assume_role_policy" {
+  statement {
+    effect = "Allow"
+
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+
+# IAM Role and Instance Profile for SonarQube EC2 Instance
+resource "aws_iam_role" "sonarqube_role" {
+  name               = "${var.name}-sonarqube-role"
+  assume_role_policy = data.aws_iam_policy_document.sonarqube_assume_role_policy.json
+}
+
+resource "aws_iam_instance_profile" "sonarqube_instance_profile" {
+  name = "${var.name}-sonarqube-instance-profile"
+  role = aws_iam_role.sonarqube_role.name
+}
+
+# data source to fetch latest ubuntu ami
+data "aws_ami" "latest_ubuntu" {
+  most_recent = true
+
+  owners = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+  filter {
+    name   = "virtualization-type" # hvm is hardware virtual machine for better performance
+    values = ["hvm"]
+  }
+  filter {
+        name   = "architecture" # x86_64 architecture is 64 bit architecture for servers
+    values = ["x86_64"]
+  }
+
+}
+
+
+## EC2 Instance for SonarQube
+resource "aws_instance" "sonarqube_server" {
+  ami                    = data.aws_ami.latest_ubuntu.id
+  instance_type          = "t2.medium"
+  key_name               = aws_key_pair.key.key_name
+  subnet_id              =  aws_subnet.pub-sub1.id
+  vpc_security_group_ids = [aws_security_group.sonarqube_sg.id]
+  associate_public_ip_address = true
+  iam_instance_profile = aws_iam_instance_profile.sonarqube_instance_profile.name
+
+  # User Data Script for all installation and configuration steps
+  user_data = templatefile("${path.module}/sonarqube.sh", {
+  
+})
+
+
+  tags = {
+    Name = "${var.name}-SonarQube_Server"
+  }
+}
+
+## Output the Public IP for access
+output "sonarqube_public_ip" {
+  description = "Public IP address of the SonarQube server"
+  value       = aws_instance.sonarqube_server.public_ip
+}

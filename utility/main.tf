@@ -446,14 +446,14 @@ resource "aws_security_group" "jenkins_elb_sg" {
   }
 }
 
-# data source to fetch latest redhat ami
+# Get the latest RHEL 9 AMI for us-east-1 (Red Hat official account)
 data "aws_ami" "redhat" {
   most_recent = true
-  owners      = ["309956199498"] # Red Hat, Inc.
+  owners      = ["309956199498"] # Red Hat official AWS account
 
   filter {
-    name   = "name"
-    values = ["RHEL-8.*_HVM-*-x86_64-*-Hourly2-GP2"]
+    name = "name"
+    values = ["RHEL-8.*_HVM-*-x86_64-*"]
   }
 
   filter {
@@ -466,6 +466,7 @@ data "aws_ami" "redhat" {
     values = ["x86_64"]
   }
 }
+
 
 # instance and installing jenkins
 resource "aws_instance" "jenkins" {
