@@ -3,7 +3,9 @@
 resource "aws_security_group" "sonarqube_sg" {
   name        = "${var.name}-sonarqube-sg"
   description = "Allow SSH, HTTP (Nginx), and HTTPS access"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = var.vpc_id
+
+  #
 
   # Ingress: HTTP access for Nginx
   ingress {
@@ -79,8 +81,8 @@ data "aws_ami" "latest_ubuntu" {
 resource "aws_instance" "sonarqube_server" {
   ami                    = data.aws_ami.latest_ubuntu.id
   instance_type          = "t2.medium"
-  key_name               = aws_key_pair.public_key.key_name
-  subnet_id              = aws_subnet.pub-sub1.id
+  key_name               = var.key
+  subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.sonarqube_sg.id]
   associate_public_ip_address = true
   iam_instance_profile = aws_iam_instance_profile.sonarqube_instance_profile.name
