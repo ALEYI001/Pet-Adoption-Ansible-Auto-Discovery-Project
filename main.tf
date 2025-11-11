@@ -37,13 +37,31 @@ module "ansible" {
   newrelic_api_key    = var.newrelic_api_key
   newrelic_account_id = var.newrelic_account_id
 }
-module "database" {
-  source      = "./module/database"
-  name        = local.name
-  db_subnets  = [module.vpc.private_subnet_ids[0], module.vpc.private_subnet_ids[1]]
-  vpc_id      = module.vpc.vpc_id
-  stage_sg    = module.prod.prod_sg
-  prod_sg     = module.stage.stage_sg
-  db_username = data.vault_generic_secret.database.data["username"]
-  db_password = data.vault_generic_secret.database.data["password"]
+# module "database" {
+#   source      = "./module/database"
+#   name        = local.name
+#   db_subnets  = [module.vpc.private_subnet_ids[0], module.vpc.private_subnet_ids[1]]
+#   vpc_id      = module.vpc.vpc_id
+#   stage_sg    = module.prod.prod_sg
+#   prod_sg     = module.stage.stage_sg
+#   db_username = data.vault_generic_secret.database.data["username"]
+#   db_password = data.vault_generic_secret.database.data["password"]
+# }
+
+module "sonarqube" {
+  source     = "./module/sonarqube"
+  name       = local.name
+  vpc_id     = module.vpc.vpc_id
+  subnet_id  = module.vpc.public_subnet_ids[1]
+  key        = module.vpc.keypair_name
+}
+
+module "stage_asg" {
+  source = "./module/stage_asg"
+  name = local.name
+  key = module.vpc.keypair_name
+  private_subnets = module.vpc.private_subnet_ids
+  vpc_id = module.vpc.vpc_id
+  ansible_sg = module.ansible.ansible_sg
+  bastion_sg = module.bastion.bastion_sg
 }

@@ -13,7 +13,7 @@ handle_error() {
 }
 
 cd utility
-echo "Destroying vault infrastructure..."
+echo "Destroying utility infrastructure..."
 terraform destroy -auto-approve
 TF_EXIT_CODE=$?
 if [ "$TF_EXIT_CODE" -ne 0 ]; then
