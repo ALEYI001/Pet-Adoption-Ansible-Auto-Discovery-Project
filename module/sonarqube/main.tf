@@ -105,9 +105,9 @@ resource "aws_elb" "elb_sonar" {
   subnets         = [aws_subnet.pub-sub1.id, aws_subnet.pub-sub2.id]
 
   listener {
-    instance_port      = 9000
-    instance_protocol  = "https"
-    lb_port            = 80
+    instance_port      = 80
+    instance_protocol  = "http"
+    lb_port            = 443
     lb_protocol        = "https"
     ssl_certificate_id = aws_acm_certificate.acm-cert.arn
 
@@ -117,7 +117,7 @@ resource "aws_elb" "elb_sonar" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
     timeout             = 3
-    target              = "tcp:9000"
+    target              = "tcp:80"
     interval            = 30
   }
 
