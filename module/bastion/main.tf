@@ -1,6 +1,6 @@
 # Security Group for Bastion Host
 resource "aws_security_group" "bastion_sg" {
- name        = "${var.name}-bastion-sg"
+  name        = "${var.name}-bastion-sg"
   description = "Security group for Bastion Host"
   vpc_id      = var.vpc
 
@@ -13,17 +13,17 @@ resource "aws_security_group" "bastion_sg" {
   }
 
   tags = {
-    name        = "${var.name}-bastion-sg"
+    name = "${var.name}-bastion-sg"
   }
 }
 
 # IAM Role 
 resource "aws_iam_role" "bastion_role" {
-   name = "${var.name}-bastion-role"
+  name = "${var.name}-bastion-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
+      Effect    = "Allow",
       Principal = { Service = "ec2.amazonaws.com" },
       Action    = "sts:AssumeRole"
     }]
@@ -41,22 +41,20 @@ resource "aws_iam_instance_profile" "bastion_profile" {
 }
 # Launch Template for Bastion Host
 resource "aws_launch_template" "bastion_lt" {
- name_prefix   = "${var.name}-bastion-lt"
+  name_prefix   = "${var.name}-bastion-lt"
   image_id      = data.aws_ami.ubuntu.id
+  key_name      = var.key_name
   instance_type = "t2.micro"
-
   iam_instance_profile {
     name = aws_iam_instance_profile.bastion_profile.name
   }
-user_data = base64encode(templatefile("${path.module}/user_data.sh", {
-   
+  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
     private_key = var.private_key
   }))
   network_interfaces {
     associate_public_ip_address = true
     security_groups             = [aws_security_group.bastion_sg.id]
   }
-
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -76,25 +74,23 @@ data "aws_ami" "ubuntu" {
 # Autoscaling group
 resource "aws_autoscaling_group" "bastion_asg" {
   name                      = "${var.name}-bastion-asg"
-  desired_capacity           = 1
-  max_size                   = 3
-  min_size                   = 1
+  desired_capacity          = 1
+  max_size                  = 3
+  min_size                  = 1
   vpc_zone_identifier       = var.subnets
-  health_check_grace_period  = 120
-  health_check_type          = "EC2"
-  force_delete               = true
-
+  health_check_grace_period = 120
+  health_check_type         = "EC2"
+  force_delete              = true
   launch_template {
     id      = aws_launch_template.bastion_lt.id
     version = "$Latest"
   }
-
   tag {
     key                 = "Name"
-   value               = "${var.name}-bastion-asg"
+    value               = "${var.name}-bastion-asg"
     propagate_at_launch = true
   }
-lifecycle {
+  lifecycle {
     create_before_destroy = true
   }
 }
@@ -105,7 +101,6 @@ resource "aws_autoscaling_policy" "bastion_asg_policy" {
   autoscaling_group_name = aws_autoscaling_group.bastion_asg.name
   policy_type            = "TargetTrackingScaling"
   adjustment_type        = "ChangeInCapacity"
-
   target_tracking_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ASGAverageCPUUtilization"

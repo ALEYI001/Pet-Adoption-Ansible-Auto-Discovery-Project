@@ -452,7 +452,7 @@ data "aws_ami" "redhat" {
   owners      = ["309956199498"] # Red Hat official AWS account
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["RHEL-8.*_HVM-*-x86_64-*"]
   }
 

@@ -10,9 +10,7 @@ sudo yum install -y session-manager-plugin.rpm
 sudo systemctl start amazon-ssm-agent
 sudo systemctl enable amazon-ssm-agent
 
-# install jenkins and dependencies
-sudo yum install wget git maven -y
-
+sudo yum install wget maven git -y
 # get jenkins repo
 sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 #import jenkins key
@@ -26,7 +24,6 @@ sudo sed -i 's/^User=jenkins/User=root/' /usr/lib/systemd/system/jenkins.service
 sudo systemctl daemon-reload
 sudo systemctl start jenkins
 sudo systemctl enable jenkins
-sudo systemctl start jenkins
 sudo usermod -aG jenkins ec2-user
 
 # install docker

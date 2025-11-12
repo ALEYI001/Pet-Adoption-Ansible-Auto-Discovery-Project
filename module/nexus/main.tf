@@ -72,13 +72,13 @@ resource "aws_security_group" "nexus_sg" {
   }
 
   ingress {
-    description     = "Nexus app from ELB"
-    from_port       = 8085
-    to_port         = 8085
-    protocol        = "tcp"
-    cidr_blocks =  ["0.0.0.0/0"]
+    description = "Nexus app from ELB"
+    from_port   = 8085
+    to_port     = 8085
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
-  
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -117,7 +117,7 @@ resource "aws_security_group" "nexus_elb_sg" {
 resource "aws_instance" "nexus" {
   ami                         = data.aws_ami.rhel_9.id
   instance_type               = "t2.medium"
-  subnet_id                   = var.subnet_id       
+  subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.nexus_sg.id]
   iam_instance_profile        = aws_iam_instance_profile.nexus_instance_profile.name
   associate_public_ip_address = true
@@ -133,16 +133,16 @@ resource "aws_instance" "nexus" {
 
 # Classic ELB for Nexus
 resource "aws_elb" "nexus_elb" {
-  name            = "${var.name}-nexus-elb"
-  subnets         = var.subnet_ids
-  security_groups = [aws_security_group.nexus_elb_sg.id]
+  name                      = "${var.name}-nexus-elb"
+  subnets                   = var.subnet_ids
+  security_groups           = [aws_security_group.nexus_elb_sg.id]
   cross_zone_load_balancing = true
 
   listener {
-    instance_port     = 8081
-    instance_protocol = "http"
-    lb_port           = 443
-    lb_protocol       = "https"
+    instance_port      = 8081
+    instance_protocol  = "http"
+    lb_port            = 443
+    lb_protocol        = "https"
     ssl_certificate_id = data.aws_acm_certificate.acm-cert.arn
   }
 
@@ -155,7 +155,7 @@ resource "aws_elb" "nexus_elb" {
   }
 
   instances = [aws_instance.nexus.id]
-  tags = { Name = "${var.name}-nexus-elb" }
+  tags      = { Name = "${var.name}-nexus-elb" }
 
 }
 
@@ -167,9 +167,8 @@ data "aws_route53_zone" "my_hosted_zone" {
 
 # data block to fetch ACM certificate for Nexus
 data "aws_acm_certificate" "acm-cert" {
-  domain = var.domain_name
+  domain   = var.domain_name
   statuses = ["ISSUED"]
-
 }
 
 # Route53 Record for Nexus Service

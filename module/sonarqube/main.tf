@@ -59,7 +59,7 @@ resource "aws_iam_instance_profile" "sonarqube_instance_profile" {
 # data source to fetch latest ubuntu ami
 data "aws_ami" "latest_ubuntu" {
   most_recent = true
-  owners = ["099720109477"] # Canonical
+  owners      = ["099720109477"] # Canonical
   filter {
     name   = "name"
     values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
@@ -69,7 +69,7 @@ data "aws_ami" "latest_ubuntu" {
     values = ["hvm"]
   }
   filter {
-        name   = "architecture" # x86_64 architecture is 64 bit architecture for servers
+    name   = "architecture" # x86_64 architecture is 64 bit architecture for servers
     values = ["x86_64"]
   }
 }
@@ -77,17 +77,17 @@ data "aws_ami" "latest_ubuntu" {
 
 ## EC2 Instance for SonarQube
 resource "aws_instance" "sonarqube_server" {
-  ami                    = data.aws_ami.latest_ubuntu.id
-  instance_type          = "t2.medium"
-  key_name               = var.key
-  subnet_id              = var.subnet_id
-  vpc_security_group_ids = [aws_security_group.sonarqube_sg.id]
+  ami                         = data.aws_ami.latest_ubuntu.id
+  instance_type               = "t2.medium"
+  key_name                    = var.key
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [aws_security_group.sonarqube_sg.id]
   associate_public_ip_address = true
-  iam_instance_profile = aws_iam_instance_profile.sonarqube_instance_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.sonarqube_instance_profile.name
   # User Data Script for all installation and configuration steps
   user_data = templatefile("${path.module}/sonarqube.sh", {
-  
-})
+
+  })
   tags = {
     Name = "${var.name}-SonarQube_Server"
   }

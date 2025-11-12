@@ -2,7 +2,7 @@ output "vpc_id" {
   value = aws_vpc.vpc.id
 }
 output "public_subnet_ids" {
-  value = [aws_subnet.pub-sub1.id, aws_subnet.pub-sub2.id] 
+  value = [aws_subnet.pub-sub1.id, aws_subnet.pub-sub2.id]
 }
 output "private_subnet_ids" {
   value = [aws_subnet.priv-sub1.id, aws_subnet.priv-sub2.id]

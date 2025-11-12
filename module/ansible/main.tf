@@ -44,15 +44,15 @@ resource "aws_security_group" "ansible_sg" {
 
 # Ansible EC2 instance
 resource "aws_instance" "ansible_server" {
-  ami                         = data.aws_ami.redhat.id
-  instance_type               = "t2.micro"
-  key_name                    = var.keypair_name
-  vpc_security_group_ids      = [aws_security_group.ansible_sg.id]
-  subnet_id                   = var.subnet_id[0]
-  user_data                   = templatefile("${path.module}/ansible_userdata.sh", {
-    private_key               = var.private_key
-    newrelic_api_key          = var.newrelic_api_key
-    newrelic_account_id       = var.newrelic_account_id
+  ami                    = data.aws_ami.redhat.id
+  instance_type          = "t2.micro"
+  key_name               = var.keypair_name
+  vpc_security_group_ids = [aws_security_group.ansible_sg.id]
+  subnet_id              = var.subnet_id[0]
+  user_data = templatefile("${path.module}/ansible_userdata.sh", {
+    private_key         = var.private_key
+    newrelic_api_key    = var.newrelic_api_key
+    newrelic_account_id = var.newrelic_account_id
   })
 
   root_block_device {

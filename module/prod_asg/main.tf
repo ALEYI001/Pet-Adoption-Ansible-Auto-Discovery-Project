@@ -9,16 +9,16 @@ data "aws_ami" "latest_amazon_linux" {
 }
 
 //creating launch template 
-resource "aws_launch_template" "stage_launch_config" {
-  name                   = "${var.name}-stage-asg-config"
+resource "aws_launch_template" "prod_launch_config" {
+  name                   = "${var.name}-prod-asg-config"
   image_id               = data.aws_ami.latest_amazon_linux.id
   instance_type          = "t3.micro"
   key_name               = var.key
-  vpc_security_group_ids = [aws_security_group.stage_sg.id]
+  vpc_security_group_ids = [aws_security_group.prod_sg.id]
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "${var.name}-stage-asg-config"
+      Name = "${var.name}-prod-asg-config"
     }
   }
   lifecycle {
@@ -27,8 +27,8 @@ resource "aws_launch_template" "stage_launch_config" {
 }
 
 # Autoscaling group for the application
-resource "aws_autoscaling_group" "stage_asg" {
-  name                      = "${var.name}-stage-asg"
+resource "aws_autoscaling_group" "prod_asg" {
+  name                      = "${var.name}-prod-asg"
   max_size                  = 3
   min_size                  = 1
   desired_capacity          = 1
@@ -37,22 +37,22 @@ resource "aws_autoscaling_group" "stage_asg" {
   vpc_zone_identifier       = var.private_subnets
   force_delete              = true
   launch_template {
-    id      = aws_launch_template.stage_launch_config.id
+    id      = aws_launch_template.prod_launch_config.id
     version = "$Latest"
   }
-  # target_group_arns = [aws_lb_target_group.stage_tg.arn]
+  # target_group_arns = [aws_lb_target_group.prod_tg.arn]
   tag {
     key                 = "Name"
-    value               = "${var.name}-stage-asg"
+    value               = "${var.name}-prod-asg"
     propagate_at_launch = true
   }
 }
 
 # auto scaling policy
-resource "aws_autoscaling_policy" "Stage_scale_out" {
-  name                   = "Stage-scale-out-policy"
+resource "aws_autoscaling_policy" "prod_scale_out" {
+  name                   = "prod-scale-out-policy"
   adjustment_type        = "ChangeInCapacity"
-  autoscaling_group_name = aws_autoscaling_group.stage_asg.name
+  autoscaling_group_name = aws_autoscaling_group.prod_asg.name
   policy_type            = "TargetTrackingScaling"
   target_tracking_configuration {
     target_value = 70.0
@@ -62,8 +62,8 @@ resource "aws_autoscaling_policy" "Stage_scale_out" {
   }
 }
 # Create Security Group for ASG instances
-resource "aws_security_group" "stage_sg" {
-  name        = "${var.name}-stage-sg"
+resource "aws_security_group" "prod_sg" {
+  name        = "${var.name}-prod-sg"
   description = "Allow inbound SSH and HTTP traffic"
   vpc_id      = var.vpc_id
 
@@ -89,6 +89,6 @@ resource "aws_security_group" "stage_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "${var.name}-stage-sg"
+    Name = "${var.name}-prod-sg"
   }
 }
