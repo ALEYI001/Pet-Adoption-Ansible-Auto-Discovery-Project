@@ -26,6 +26,7 @@ resource "aws_launch_template" "stage_launch_config" {
   }
 }
 
+
 # Autoscaling group for the application
 resource "aws_autoscaling_group" "stage_asg" {
   name                      = "${var.name}-stage-asg"
@@ -91,4 +92,137 @@ resource "aws_security_group" "stage_sg" {
   tags = {
     Name = "${var.name}-stage-sg"
   }
+}
+
+
+# Security Group for the application Load Balancer
+resource "aws_security_group" "alb_sg" {
+  name        = "${var.name}-alb-sg"
+  description = "Allow inbound HTTP and HTTPS traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # allow web traffic
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # allow HTTPS
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"] # outbound allowed
+  }
+
+  tags = {
+    Name = "${var.name}alb-sg"
+  }
+}
+
+# Create application load balancer
+resource "aws_lb" "app_alb" {
+  name               = "${var.name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg]
+  subnets            = [var.public_subnets]
+  enable_deletion_protection = false
+  tags = {
+    Name = "${var.name}-alb"
+  }
+  drop_invalid_header_fields = true
+}
+
+# Target Group for ALB → ASG instances
+resource "aws_lb_target_group" "atg" {
+  name     = "${var.name}-atg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+  health_check {
+    path                = "/indextest.html"
+    protocol            = "HTTP"
+    interval            = 30 #that is 30 seconds
+    timeout             = 5
+    healthy_threshold   = 3
+    unhealthy_threshold = 5
+  }
+  tags = {
+    Name = "${var.name}-atg"
+  }
+}
+# HTTP Listener
+resource "aws_lb_listener" "http_listener" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.atg.arn
+  }
+}
+
+# Create a Public Route 53 Hosted Zone
+data "aws_route53_zone" "my-hosted-zone" {
+  name         = var.domain_name
+  private_zone = false
+}
+
+#Create DNS Record for Application Load Balancer
+resource "aws_route53_record" "app_record" {
+  zone_id = data.aws_route53_zone.my_hosted_zone.zone_id
+  name    ="app.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.app_alb.dns_name
+    zone_id                = aws_lb.app_alb.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# IAM Role and Instance Profile for EC2 (SSM + ELB) 
+resource "aws_iam_role" "ec2_role" {
+  name = "${var.name}-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+# Attach AWS managed policy for SSM access Load Balancer
+resource "aws_iam_role_policy_attachment" "ssm_core" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+resource "aws_iam_role_policy_attachment" "cw_agent" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+# Load Balancer full access
+resource "aws_iam_role_policy_attachment" "elb_access" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
+}
+# Create instance profile for EC2/ASG
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "${var.name}-ec2-profile"
+  role = aws_iam_role.ec2_role.name
 }
