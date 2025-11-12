@@ -56,6 +56,7 @@ module "sonarqube" {
   vpc_id    = module.vpc.vpc_id
   subnet_id = module.vpc.public_subnet_ids[1]
   key       = module.vpc.keypair_name
+  domain_name = var.domain_name
 }
 
 module "stage_asg" {
@@ -63,9 +64,11 @@ module "stage_asg" {
   name            = local.name
   key             = module.vpc.keypair_name
   private_subnets = [module.vpc.private_subnet_ids[0], module.vpc.private_subnet_ids[1]]
+  public_subnets  = [module.vpc.public_subnet_ids[0], module.vpc.public_subnet_ids[1]]
   vpc_id          = module.vpc.vpc_id
   ansible_sg      = module.ansible.ansible_sg
   bastion_sg      = module.bastion.bastion_sg
+  domain_name     = var.domain_name
 }
 
 module "prod_asg" {
@@ -73,7 +76,9 @@ module "prod_asg" {
   name            = local.name
   key             = module.vpc.keypair_name
   private_subnets = [module.vpc.private_subnet_ids[0], module.vpc.private_subnet_ids[1]]
+  public_subnets  = [module.vpc.public_subnet_ids[0], module.vpc.public_subnet_ids[1]]
   vpc_id          = module.vpc.vpc_id
   ansible_sg      = module.ansible.ansible_sg
   bastion_sg      = module.bastion.bastion_sg
+  domain_name     = var.domain_name
 }
