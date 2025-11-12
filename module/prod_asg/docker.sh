@@ -7,4 +7,4 @@ sudo yum install docker-ce -y
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker ec2-user
-sudo hostnamectl set-hostname stage-asg
+sudo hostnamectl set-hostname prod-asg

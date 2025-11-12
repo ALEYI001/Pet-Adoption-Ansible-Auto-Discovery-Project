@@ -15,14 +15,14 @@ resource "aws_launch_template" "stage_launch_config" {
   instance_type          = "t3.micro"
   key_name               = var.key
   vpc_security_group_ids = [aws_security_group.stage_sg.id]
+  user_data = base64encode(file("${path.module}/docker.sh"))
+  iam_instance_profile {name = aws_iam_instance_profile.stage_profile.name}
+  lifecycle {create_before_destroy = true}
   tag_specifications {
     resource_type = "instance"
     tags = {
       Name = "${var.name}-stage-asg-config"
     }
-  }
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
@@ -36,12 +36,12 @@ resource "aws_autoscaling_group" "stage_asg" {
   health_check_type         = "EC2"
   health_check_grace_period = 30
   vpc_zone_identifier       = var.private_subnets
+  target_group_arns = [aws_lb_target_group.stage_tg.arn]
   force_delete              = true
   launch_template {
     id      = aws_launch_template.stage_launch_config.id
     version = "$Latest"
   }
-  # target_group_arns = [aws_lb_target_group.stage_tg.arn]
   tag {
     key                 = "Name"
     value               = "${var.name}-stage-asg"
@@ -62,6 +62,7 @@ resource "aws_autoscaling_policy" "Stage_scale_out" {
     }
   }
 }
+
 # Create Security Group for ASG instances
 resource "aws_security_group" "stage_sg" {
   name        = "${var.name}-stage-sg"
@@ -80,7 +81,7 @@ resource "aws_security_group" "stage_sg" {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.alb_sg.id]
   }
   egress {
     description = "outbound traffic"
@@ -100,13 +101,6 @@ resource "aws_security_group" "alb_sg" {
   name        = "${var.name}-alb-sg"
   description = "Allow inbound HTTP and HTTPS traffic"
   vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # allow web traffic
-  }
 
   ingress {
     from_port   = 443
@@ -138,7 +132,6 @@ resource "aws_lb" "app_alb" {
   tags = {
     Name = "${var.name}-alb"
   }
-  drop_invalid_header_fields = true
 }
 
 # Target Group for ALB → ASG instances
@@ -148,9 +141,9 @@ resource "aws_lb_target_group" "atg" {
   protocol = "HTTP"
   vpc_id   = var.vpc_id
   health_check {
-    path                = "/indextest.html"
+    path                = "/"
     protocol            = "HTTP"
-    interval            = 30 #that is 30 seconds
+    interval            = 30 
     timeout             = 5
     healthy_threshold   = 3
     unhealthy_threshold = 5
@@ -162,9 +155,10 @@ resource "aws_lb_target_group" "atg" {
 # HTTP Listener
 resource "aws_lb_listener" "http_listener" {
   load_balancer_arn = aws_lb.app_alb.arn
-  port              = 80
+  port              = 443
   protocol          = "HTTP"
-
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = data.aws_acm_certificate.acm-cert.arn
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.atg.arn
@@ -172,57 +166,25 @@ resource "aws_lb_listener" "http_listener" {
 }
 
 # Create a Public Route 53 Hosted Zone
-data "aws_route53_zone" "my-hosted-zone" {
+data "aws_route53_zone" "hosted-zone" {
   name         = var.domain_name
   private_zone = false
 }
 
+# data block to fetch ACM certificate for Nexus
+data "aws_acm_certificate" "acm-cert" {
+  domain   = var.domain_name
+  statuses = ["ISSUED"]
+}
+
 #Create DNS Record for Application Load Balancer
 resource "aws_route53_record" "app_record" {
-  zone_id = data.aws_route53_zone.my_hosted_zone.zone_id
-  name    ="app.${var.domain_name}"
+  zone_id = data.aws_route53_zone.hosted-zone.zone_id
+  name    ="stage.${var.domain_name}"
   type    = "A"
-
   alias {
     name                   = aws_lb.app_alb.dns_name
     zone_id                = aws_lb.app_alb.zone_id
     evaluate_target_health = true
   }
-}
-
-# IAM Role and Instance Profile for EC2 (SSM + ELB) 
-resource "aws_iam_role" "ec2_role" {
-  name = "${var.name}-ec2-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-# Attach AWS managed policy for SSM access Load Balancer
-resource "aws_iam_role_policy_attachment" "ssm_core" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-resource "aws_iam_role_policy_attachment" "cw_agent" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-}
-# Load Balancer full access
-resource "aws_iam_role_policy_attachment" "elb_access" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
-}
-# Create instance profile for EC2/ASG
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.name}-ec2-profile"
-  role = aws_iam_role.ec2_role.name
 }

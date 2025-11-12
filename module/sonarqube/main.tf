@@ -5,8 +5,6 @@ resource "aws_security_group" "sonarqube_sg" {
   description = "Allow SSH, HTTP (Nginx), and HTTPS access"
   vpc_id      = var.vpc_id
 
-  #
-
   # Ingress: HTTP access for Nginx
   ingress {
     description = "HTTP Access for Nginx"
@@ -95,26 +93,19 @@ resource "aws_instance" "sonarqube_server" {
   }
 }
 
-
-
-
-
-
 #Creating sonarqube elastic load balancer
 resource "aws_elb" "elb_sonar" {
   name            = "${var.name}-elb-sonar"
   security_groups = [aws_security_group.sonarqube_sg.id]
   subnets         = [aws_subnet.pub-sub1.id, aws_subnet.pub-sub2.id]
-
   listener {
     instance_port      = 80
     instance_protocol  = "http"
     lb_port            = 443
     lb_protocol        = "https"
-    ssl_certificate_id = aws_acm_certificate.acm-cert.arn
+    ssl_certificate_id = data.aws_acm_certificate.acm-cert.arn
 
   }
-
   health_check {
     healthy_threshold   = 2
     unhealthy_threshold = 2
@@ -122,14 +113,11 @@ resource "aws_elb" "elb_sonar" {
     target              = "tcp:80"
     interval            = 30
   }
-
   instances                   = [aws_instance.sonarqube_server.id]
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true
   connection_draining_timeout = 400
-
-
   tags = {
     Name = "${var.name}-sonar_elb"
   }
@@ -145,7 +133,6 @@ resource "aws_route53_record" "sonarqube-record" {
     zone_id                = aws_elb.elb_sonar.zone_id
     evaluate_target_health = true
   }
-  depends_on = [ aws_acm_certificate_validation.acm_cert_validation ]
 }
 
 # Lookup the existing Route 53 hosted zone
@@ -154,43 +141,8 @@ data "aws_route53_zone" "my-hosted-zone" {
   private_zone = false
 }
 
-# Create ACM certificate with DNS validation 
-resource "aws_acm_certificate" "acm-cert" {
-  domain_name               = var.domain_name
-  subject_alternative_names = ["*.${var.domain_name}"]
-  validation_method         = "DNS"
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = {
-    Name = "${var.name}-acm-cert"
-  }
+# data block to fetch ACM certificate for Sonarqube
+data "aws_acm_certificate" "acm-cert" {
+  domain   = var.domain_name
+  statuses = ["ISSUED"]
 }
-
-# fetch DNS validation records for the ACM certificate
-resource "aws_route53_record" "acm_validation_records" {
-  for_each = {
-    for dvo in aws_acm_certificate.acm-cert.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  allow_overwrite = true
-  zone_id         = data.aws_route53_zone.my-hosted-zone.zone_id
-  name            = each.value.name
-  type            = each.value.type
-  ttl             = 60
-  records         = [each.value.record]
-}
-
-
-
-# Validate the ACM certificate after DNS records are created
-resource "aws_acm_certificate_validation" "acm_cert_validation" {
-  certificate_arn         = aws_acm_certificate.acm-cert.arn
-  validation_record_fqdns = [for r in aws_route53_record.acm_validation_records : r.fqdn]
-}
-
