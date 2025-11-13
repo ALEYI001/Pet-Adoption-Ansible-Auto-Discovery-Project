@@ -453,7 +453,7 @@ data "aws_ami" "redhat" {
 
   filter {
     name   = "name"
-    values = ["RHEL-8.*_HVM-*-x86_64-*"]
+    values = ["RHEL-9*"]
   }
 
   filter {

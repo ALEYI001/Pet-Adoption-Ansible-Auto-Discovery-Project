@@ -22,8 +22,7 @@ sudo yum install jenkins -y
 #enable systemd integration on jenkins
 sudo sed -i 's/^User=jenkins/User=root/' /usr/lib/systemd/system/jenkins.service
 sudo systemctl daemon-reload
-sudo systemctl start jenkins
-sudo systemctl enable jenkins
+sudo systemctl enable --now jenkins
 sudo usermod -aG jenkins ec2-user
 
 # install docker
