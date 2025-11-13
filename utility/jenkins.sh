@@ -10,7 +10,7 @@ sudo yum install -y session-manager-plugin.rpm
 sudo systemctl start amazon-ssm-agent
 sudo systemctl enable amazon-ssm-agent
 
-sudo yum install wget maven git -y
+sudo yum install wget maven git pip -y
 # get jenkins repo
 sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 #import jenkins key
