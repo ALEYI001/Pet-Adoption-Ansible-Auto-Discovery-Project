@@ -57,6 +57,7 @@ module "sonarqube" {
   subnet_id = module.vpc.public_subnet_ids[1]
   key       = module.vpc.keypair_name
   domain_name = var.domain_name
+  public_subnets = [module.vpc.public_subnet_ids[0], module.vpc.public_subnet_ids[1]]
 }
 
 module "stage_asg" {

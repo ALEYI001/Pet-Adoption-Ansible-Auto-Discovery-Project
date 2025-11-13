@@ -16,7 +16,6 @@ resource "aws_launch_template" "stage_launch_config" {
   key_name               = var.key
   vpc_security_group_ids = [aws_security_group.stage_sg.id]
   user_data = base64encode(file("${path.module}/docker.sh"))
-  iam_instance_profile {name = aws_iam_instance_profile.stage_profile.name}
   lifecycle {create_before_destroy = true}
   tag_specifications {
     resource_type = "instance"
@@ -36,7 +35,7 @@ resource "aws_autoscaling_group" "stage_asg" {
   health_check_type         = "EC2"
   health_check_grace_period = 30
   vpc_zone_identifier       = var.private_subnets
-  target_group_arns = [aws_lb_target_group.stage_tg.arn]
+  target_group_arns = [aws_lb_target_group.atg.arn]
   force_delete              = true
   launch_template {
     id      = aws_launch_template.stage_launch_config.id
@@ -126,8 +125,8 @@ resource "aws_lb" "app_alb" {
   name               = "${var.name}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg]
-  subnets            = [var.public_subnets]
+  security_groups    = [aws_security_group.alb_sg.id]
+  subnets            = var.public_subnets
   enable_deletion_protection = false
   tags = {
     Name = "${var.name}-alb"

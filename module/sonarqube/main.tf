@@ -97,7 +97,7 @@ resource "aws_instance" "sonarqube_server" {
 resource "aws_elb" "elb_sonar" {
   name            = "${var.name}-elb-sonar"
   security_groups = [aws_security_group.sonarqube_sg.id]
-  subnets         = [aws_subnet.pub-sub1.id, aws_subnet.pub-sub2.id]
+  subnets         = var.public_subnets
   listener {
     instance_port      = 80
     instance_protocol  = "http"
