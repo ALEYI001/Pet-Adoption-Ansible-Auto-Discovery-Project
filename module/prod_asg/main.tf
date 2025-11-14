@@ -35,7 +35,7 @@ resource "aws_autoscaling_group" "prod_asg" {
   health_check_type         = "EC2"
   health_check_grace_period = 30
   vpc_zone_identifier       = var.private_subnets
-  target_group_arns = [aws_lb_target_group.atg.arn]
+  target_group_arns = [aws_lb_target_group.prod_atg.arn]
   force_delete              = true
   launch_template {
     id      = aws_launch_template.prod_launch_config.id
