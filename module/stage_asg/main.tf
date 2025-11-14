@@ -25,7 +25,6 @@ resource "aws_launch_template" "stage_launch_config" {
   }
 }
 
-
 # Autoscaling group for the application
 resource "aws_autoscaling_group" "stage_asg" {
   name                      = "${var.name}-stage-asg"
@@ -49,7 +48,7 @@ resource "aws_autoscaling_group" "stage_asg" {
 }
 
 # auto scaling policy
-resource "aws_autoscaling_policy" "Stage_scale_out" {
+resource "aws_autoscaling_policy" "stage_scale_out" {
   name                   = "Stage-scale-out-policy"
   adjustment_type        = "ChangeInCapacity"
   autoscaling_group_name = aws_autoscaling_group.stage_asg.name
@@ -121,7 +120,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 # Create application load balancer
-resource "aws_lb" "app_alb" {
+resource "aws_lb" "stage_alb" {
   name               = "${var.name}-alb"
   internal           = false
   load_balancer_type = "application"
@@ -134,7 +133,7 @@ resource "aws_lb" "app_alb" {
 }
 
 # Target Group for ALB → ASG instances
-resource "aws_lb_target_group" "atg" {
+resource "aws_lb_target_group" "stage_atg" {
   name     = "${var.name}-atg"
   port     = 80
   protocol = "HTTP"
@@ -152,15 +151,15 @@ resource "aws_lb_target_group" "atg" {
   }
 }
 # HTTP Listener
-resource "aws_lb_listener" "http_listener" {
-  load_balancer_arn = aws_lb.app_alb.arn
+resource "aws_lb_listener" "stage_https_listener" {
+  load_balancer_arn = aws_lb.stage_alb.arn
   port              = 443
-  protocol          = "HTTP"
+  protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   certificate_arn   = data.aws_acm_certificate.acm-cert.arn
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.atg.arn
+    target_group_arn = aws_lb_target_group.stage_atg.arn
   }
 }
 
@@ -177,13 +176,13 @@ data "aws_acm_certificate" "acm-cert" {
 }
 
 #Create DNS Record for Application Load Balancer
-resource "aws_route53_record" "app_record" {
+resource "aws_route53_record" "stage_record" {
   zone_id = data.aws_route53_zone.hosted-zone.zone_id
   name    ="stage.${var.domain_name}"
   type    = "A"
   alias {
-    name                   = aws_lb.app_alb.dns_name
-    zone_id                = aws_lb.app_alb.zone_id
+    name                   = aws_lb.stage_alb.dns_name
+    zone_id                = aws_lb.stage_alb.zone_id
     evaluate_target_health = true
   }
 }
