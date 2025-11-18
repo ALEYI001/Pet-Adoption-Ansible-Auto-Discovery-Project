@@ -49,10 +49,13 @@ resource "aws_instance" "ansible_server" {
   key_name               = var.keypair_name
   vpc_security_group_ids = [aws_security_group.ansible_sg.id]
   subnet_id              = var.subnet_id[0]
+  iam_instance_profile = aws_iam_instance_profile.ansible_profile.id
+  depends_on = [aws_s3_bucket_object.scripts1, aws_s3_bucket_object.scripts2]
   user_data = templatefile("${path.module}/ansible_userdata.sh", {
     private_key         = var.private_key
     newrelic_api_key    = var.newrelic_api_key
     newrelic_account_id = var.newrelic_account_id
+    s3_bucket_name      = var.s3_bucket_name
   })
 
   root_block_device {
@@ -96,6 +99,20 @@ resource "aws_iam_role_policy_attachment" "s3_policy" {
 }
 
 resource "aws_iam_instance_profile" "ansible_profile" {
-  name = "ansible-discovery-profile"
+  name = "${var.name}-ansible-profile"
   role = aws_iam_role.ansible_role.name
+}
+
+# upload Ansible file to S3
+resource "aws_s3_bucket_object" "scripts1" {
+  bucket = var.s3_bucket_name
+  key    = "scripts/test.txt"
+  source = "${path.module}/scripts/test.txt"
+}
+
+# upload Ansible file to S3
+resource "aws_s3_bucket_object" "scripts2" {
+  bucket = var.s3_bucket_name
+  key    = "scripts/test2.txt"
+  source = "${path.module}/scripts/test2.txt"
 }

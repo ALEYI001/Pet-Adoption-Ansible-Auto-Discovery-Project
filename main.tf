@@ -37,6 +37,7 @@ module "ansible" {
   private_key         = module.vpc.private_key
   newrelic_api_key    = var.newrelic_api_key
   newrelic_account_id = var.newrelic_account_id
+  s3_bucket_name      = var.s3_bucket_name
 }
 
 module "database" {
