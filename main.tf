@@ -38,6 +38,7 @@ module "ansible" {
   newrelic_api_key    = var.newrelic_api_key
   newrelic_account_id = var.newrelic_account_id
   s3_bucket_name      = var.s3_bucket_name
+  nexus_ip            = module.nexus.nexus_ip
 }
 
 module "database" {

@@ -24,11 +24,13 @@ sudo ./aws/install
 rm -f awscliv2.zip
 rm -rf aws/ 
 
-
 # Copy private key
 echo "${private_key}"  > /home/ec2-user/.ssh/id_rsa 
 sudo chmod 400 /home/ec2-user/.ssh/id_rsa
 sudo chown ec2-user:ec2-user /home/ec2-user/.ssh/id_rsa
+
+# create an ansible variable file
+echo "NEXUS_IP: ${nexus_ip}:8085"  > /etc/ansible/ansible_variable.yml
 
 # Fetch Ansible playbooks from S3 bucket
 s3_bucket_name="${s3_bucket_name}"

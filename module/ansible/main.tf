@@ -56,6 +56,7 @@ resource "aws_instance" "ansible_server" {
     newrelic_api_key    = var.newrelic_api_key
     newrelic_account_id = var.newrelic_account_id
     s3_bucket_name      = var.s3_bucket_name
+    nexus_ip            = var.nexus_ip
   })
 
   root_block_device {
@@ -106,13 +107,20 @@ resource "aws_iam_instance_profile" "ansible_profile" {
 # upload Ansible file to S3
 resource "aws_s3_bucket_object" "scripts1" {
   bucket = var.s3_bucket_name
-  key    = "scripts/test.txt"
-  source = "${path.module}/scripts/test.txt"
+  key    = "scripts/deployment.yml"
+  source = "${path.module}/scripts/deployment.yml"
 }
 
 # upload Ansible file to S3
 resource "aws_s3_bucket_object" "scripts2" {
   bucket = var.s3_bucket_name
-  key    = "scripts/test2.txt"
-  source = "${path.module}/scripts/test2.txt"
+  key    = "scripts/prod_bashscript.sh"
+  source = "${path.module}/scripts/prod_bashscript.sh"
+}
+
+# upload Ansible file to S3
+resource "aws_s3_bucket_object" "scripts3" {
+  bucket = var.s3_bucket_name
+  key    = "scripts/stage_bashscript.sh"
+  source = "${path.module}/scripts/stage_bashscript.sh"
 }
