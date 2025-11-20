@@ -50,7 +50,7 @@ resource "aws_instance" "ansible_server" {
   vpc_security_group_ids = [aws_security_group.ansible_sg.id]
   subnet_id              = var.subnet_id[0]
   iam_instance_profile = aws_iam_instance_profile.ansible_profile.id
-  depends_on = [aws_s3_bucket_object.scripts1, aws_s3_bucket_object.scripts2]
+  depends_on = [aws_s3_object.scripts1, aws_s3_object.scripts2, aws_s3_object.scripts3]
   user_data = templatefile("${path.module}/ansible_userdata.sh", {
     private_key         = var.private_key
     newrelic_api_key    = var.newrelic_api_key
