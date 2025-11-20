@@ -105,21 +105,21 @@ resource "aws_iam_instance_profile" "ansible_profile" {
 }
 
 # upload Ansible file to S3
-resource "aws_s3_bucket_object" "scripts1" {
+resource "aws_s3_object" "scripts1" {
   bucket = var.s3_bucket_name
   key    = "scripts/deployment.yml"
   source = "${path.module}/scripts/deployment.yml"
 }
 
 # upload Ansible file to S3
-resource "aws_s3_bucket_object" "scripts2" {
+resource "aws_s3_object" "scripts2" {
   bucket = var.s3_bucket_name
   key    = "scripts/prod_bashscript.sh"
   source = "${path.module}/scripts/prod_bashscript.sh"
 }
 
 # upload Ansible file to S3
-resource "aws_s3_bucket_object" "scripts3" {
+resource "aws_s3_object" "scripts3" {
   bucket = var.s3_bucket_name
   key    = "scripts/stage_bashscript.sh"
   source = "${path.module}/scripts/stage_bashscript.sh"
