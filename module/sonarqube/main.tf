@@ -11,7 +11,7 @@ resource "aws_security_group" "sonarqube_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [ aws_security_group.sonarqube_sg_elb.id ]
   }
   # Egress: Allow all outbound traffic
   egress {
@@ -22,6 +22,33 @@ resource "aws_security_group" "sonarqube_sg" {
   }
   tags = {
     Name = "${var.name}-sonarqube-sg"
+  }
+}
+
+
+## Security Group for SonarQube Server ##
+resource "aws_security_group" "sonarqube_sg_elb" {
+  name        = "${var.name}-sonarqube-sg-elb"
+  description = "Allow SSH, HTTP (Nginx), and HTTPS access"
+  vpc_id      = var.vpc_id
+
+  # Ingress: HTTP access for Nginx
+  ingress {
+    description = "HTTP Access for Nginx"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Egress: Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "${var.name}-sonarqube-sg-elb"
   }
 }
 
@@ -96,7 +123,7 @@ resource "aws_instance" "sonarqube_server" {
 #Creating sonarqube elastic load balancer
 resource "aws_elb" "elb_sonar" {
   name            = "${var.name}-elb-sonar"
-  security_groups = [aws_security_group.sonarqube_sg.id]
+  security_groups = [aws_security_group.sonarqube_sg_elb.id]
   subnets         = var.public_subnets
   listener {
     instance_port      = 80
