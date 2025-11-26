@@ -60,6 +60,8 @@ module "sonarqube" {
   key       = module.vpc.keypair_name
   domain_name = var.domain_name
   public_subnets = [module.vpc.public_subnet_ids[0], module.vpc.public_subnet_ids[1]]
+  newrelic_api_key    = var.newrelic_api_key
+  newrelic_account_id = var.newrelic_account_id
 }
 
 module "stage_asg" {
@@ -72,6 +74,8 @@ module "stage_asg" {
   ansible_sg      = module.ansible.ansible_sg
   bastion_sg      = module.bastion.bastion_sg
   domain_name     = var.domain_name
+  newrelic_api_key    = var.newrelic_api_key
+  newrelic_account_id = var.newrelic_account_id
 }
 
 module "prod_asg" {
@@ -84,4 +88,6 @@ module "prod_asg" {
   ansible_sg      = module.ansible.ansible_sg
   bastion_sg      = module.bastion.bastion_sg
   domain_name     = var.domain_name
+  newrelic_api_key    = var.newrelic_api_key
+  newrelic_account_id = var.newrelic_account_id
 }

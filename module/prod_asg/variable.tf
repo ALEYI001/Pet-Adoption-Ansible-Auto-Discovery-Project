@@ -6,3 +6,5 @@ variable "ansible_sg" {}
 variable "bastion_sg" {}
 variable "public_subnets" {}
 variable "domain_name" {}
+variable "newrelic_api_key" {}
+variable "newrelic_account_id" {} 

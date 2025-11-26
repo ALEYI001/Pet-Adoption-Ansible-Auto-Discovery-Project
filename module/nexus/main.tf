@@ -127,6 +127,11 @@ resource "aws_instance" "nexus" {
     newrelic_api_key    = var.newrelic_api_key
     newrelic_account_id = var.newrelic_account_id
   })
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+    encrypted   = true
+  }
 
   tags = { Name = "${var.name}-nexus" }
 }

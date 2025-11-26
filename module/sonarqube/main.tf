@@ -113,7 +113,8 @@ resource "aws_instance" "sonarqube_server" {
   iam_instance_profile        = aws_iam_instance_profile.sonarqube_instance_profile.name
   # User Data Script for all installation and configuration steps
   user_data = templatefile("${path.module}/sonarqube.sh", {
-
+    newrelic_api_key    = var.newrelic_api_key
+    newrelic_account_id = var.newrelic_account_id
   })
   tags = {
     Name = "${var.name}-SonarQube_Server"

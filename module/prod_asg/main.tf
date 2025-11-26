@@ -23,7 +23,10 @@ resource "aws_launch_template" "prod_launch_config" {
   instance_type          = "t2.medium"
   key_name               = var.key
   vpc_security_group_ids = [aws_security_group.prod_sg.id]
-  user_data = base64encode(file("${path.module}/docker.sh"))
+  user_data = base64encode(templatefile("${path.module}/docker.sh", {
+    newrelic_api_key    = var.newrelic_api_key,
+    newrelic_account_id = var.newrelic_account_id
+  }))
   lifecycle {create_before_destroy = true}
   tag_specifications {
     resource_type = "instance"

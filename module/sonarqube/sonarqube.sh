@@ -173,3 +173,4 @@ echo "SonarQube is accessible via http://<Your-Server-IP> (proxied via Nginx on 
 echo "Initial credentials are admin/admin."
 echo "PostgreSQL credentials: User: $DB_USER, Password: $DB_PASSWORD"
 # --------------------------------------------------------------------------------------
+curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash && sudo NEW_RELIC_API_KEY="${newrelic_api_key}" NEW_RELIC_ACCOUNT_ID="${newrelic_account_id}" NEW_RELIC_REGION=EU /usr/local/bin/newrelic install -y
