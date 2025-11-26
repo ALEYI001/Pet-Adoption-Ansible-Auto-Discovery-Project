@@ -1,6 +1,6 @@
 provider "aws" {
   region  = "us-east-1"
-  profile = "pet_team"
+  # profile = "pet_team"
 }
 
 provider "vault" {
@@ -17,7 +17,7 @@ terraform {
     bucket       = "adoptionteam1-bucket2"
     key          = "infra/terraform.tfstate"
     region       = "us-east-1"
-    profile      = "pet_team"
+    # profile      = "pet_team"
     encrypt      = true
     use_lockfile = true
   }
