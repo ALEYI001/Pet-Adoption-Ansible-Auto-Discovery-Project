@@ -450,17 +450,14 @@ resource "aws_security_group" "jenkins_elb_sg" {
 data "aws_ami" "redhat" {
   most_recent = true
   owners      = ["309956199498"] # Red Hat official AWS account
-
   filter {
     name   = "name"
     values = ["RHEL-9*"]
   }
-
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-
   filter {
     name   = "architecture"
     values = ["x86_64"]
@@ -482,6 +479,11 @@ resource "aws_instance" "jenkins" {
     newrelic_account_id = var.newrelic_account_id
     region              = var.region
   })
+  # root_block_device {
+  #   volume_size = 100
+  #   volume_type = "gp3"
+  #   encrypted   = true
+  # }
   tags = {
     Name = "${local.name}-jenkins"
   }

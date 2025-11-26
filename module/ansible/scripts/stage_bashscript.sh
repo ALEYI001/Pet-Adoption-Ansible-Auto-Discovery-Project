@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Script configuration variables
-ASG_NAME="petclinic-stage-asg"               # Auto Scaling Group name
+ASG_NAME="petclinic2-stage-asg"               # Auto Scaling Group name
 REGION="us-east-1"                 # AWS region
 INVENTORY_FILE="/etc/ansible/stage_hosts"       # Ansible inventory file
 IP_LIST_FILE="/etc/ansible/stage_ips.txt"  # Temporary file to store discovered IPs
 SSH_USER="ec2-user"               # SSH user for RedHat instances
 SSH_KEY_PATH="/home/ec2-user/.ssh/id_rsa"  # Path to SSH private key
-DOCKER_REPO="nexus.example.com"    # Nexus Docker repository URL
+DOCKER_REPO="nexus.work-experience2025.buzz"    # Nexus Docker repository URL
 DOCKER_USER="admin"        # Docker repository username
 DOCKER_PASSWORD="admin123"    # Docker repository password
 APP_IMAGE="$DOCKER_REPO/apppetclinic:latest"        # Docker image name and tag

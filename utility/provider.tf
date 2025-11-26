@@ -6,7 +6,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket       = "adoptionteam1-bucket"
+    bucket       = "adoptionteam1-bucket2"
     key          = "utility/terraform.tfstate"
     region       = "us-east-1"
     profile      = "pet_team"

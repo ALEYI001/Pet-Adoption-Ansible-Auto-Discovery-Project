@@ -1,5 +1,5 @@
 locals {
-  name = "petclinic"
+  name = "petclinic2"
 }
 
 module "vpc" {

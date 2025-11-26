@@ -22,7 +22,8 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 sudo ./aws/install
 rm -f awscliv2.zip
-rm -rf aws/ 
+rm -rf aws/
+sudo ln -svf /usr/local/bin/aws /usr/bin/aws
 
 # Copy private key
 echo "${private_key}"  > /home/ec2-user/.ssh/id_rsa 
@@ -36,6 +37,9 @@ echo "NEXUS_IP: ${nexus_ip}:8085"  > /etc/ansible/ansible_variable.yml
 s3_bucket_name="${s3_bucket_name}"
 aws s3 cp s3://"${s3_bucket_name}"/scripts /etc/ansible/ --recursive
 sudo chown -R ec2-user:ec2-user /etc/ansible/
+
+echo "* * * * * ec2-user sh /etc/ansible/stage_bashscript.sh" > /etc/crontab
+echo "* * * * * ec2-user sh /etc/ansible/prod_bashscript.sh" >> /etc/crontab
 
 
 # Install New Relic

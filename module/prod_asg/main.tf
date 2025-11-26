@@ -1,18 +1,26 @@
-#  Get the Latest Amazon Linux 2 AMI
-data "aws_ami" "latest_amazon_linux" {
+# Get the latest RHEL 9 AMI for us-east-1 (Red Hat official account)
+data "aws_ami" "redhat" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["309956199498"] # Red Hat official AWS account
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["RHEL-9*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
   }
 }
 
 //creating launch template 
 resource "aws_launch_template" "prod_launch_config" {
   name                   = "${var.name}-prod-asg-config"
-  image_id               = data.aws_ami.latest_amazon_linux.id
-  instance_type          = "t3.micro"
+  image_id               = data.aws_ami.redhat.id
+  instance_type          = "t2.medium"
   key_name               = var.key
   vpc_security_group_ids = [aws_security_group.prod_sg.id]
   user_data = base64encode(file("${path.module}/docker.sh"))
@@ -50,7 +58,7 @@ resource "aws_autoscaling_group" "prod_asg" {
 
 # auto scaling policy
 resource "aws_autoscaling_policy" "prod_scale_out" {
-  name                   = "prod-scale-out-policy"
+  name                   = "${var.name}-prod-scale-out-policy"
   adjustment_type        = "ChangeInCapacity"
   autoscaling_group_name = aws_autoscaling_group.prod_asg.name
   policy_type            = "TargetTrackingScaling"
