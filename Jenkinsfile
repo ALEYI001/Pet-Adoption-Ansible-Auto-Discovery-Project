@@ -23,8 +23,9 @@ pipeline {
             steps {
                 script {
                     sh 'pip install pipenv'
-                    sh 'pipenv run pip install checkov'
-                    def checkovStatus = sh(script: 'pipenv run checkov -d . -o cli --output-file checkov-results.txt --quiet', returnStatus: true)
+                    sh 'python -m pipenv run pip install checkov'
+                   // sh 'pipenv run pip install checkov'
+                    def checkovStatus = sh(script: 'python -m pipenv run checkov -d . -o cli --output-file checkov-results.txt --quiet', returnStatus: true)
                     junit allowEmptyResults: true, testResults: 'checkov-results.txt' 
                 }
             }
