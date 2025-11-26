@@ -10,7 +10,7 @@ SSH_KEY_PATH="/home/ec2-user/.ssh/id_rsa"  # Path to SSH private key
 DOCKER_REPO="nexus.work-experience2025.buzz"    # Nexus Docker repository URL
 DOCKER_USER="admin"        # Docker repository username
 DOCKER_PASSWORD="admin123"    # Docker repository password
-APP_IMAGE="$DOCKER_REPO/apppetclinic:latest"        # Docker image name and tag
+APP_IMAGE="$DOCKER_REPO/nexus-docker-repo/apppetclinic:latest"        # Docker image name and tag
 
 # Function to log messages
 log_message() {

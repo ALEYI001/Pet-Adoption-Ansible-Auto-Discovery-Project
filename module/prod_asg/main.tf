@@ -146,7 +146,7 @@ resource "aws_lb" "prod_alb" {
 # Target Group for ALB → ASG instances
 resource "aws_lb_target_group" "prod_atg" {
   name     = "${var.name}-prod-atg"
-  port     = 80
+  port     = 8080
   protocol = "HTTP"
   vpc_id   = var.vpc_id
   health_check {
