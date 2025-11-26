@@ -468,7 +468,7 @@ data "aws_ami" "redhat" {
 # instance and installing jenkins
 resource "aws_instance" "jenkins" {
   ami                         = data.aws_ami.redhat.id
-  instance_type               = "t2.medium"
+  instance_type               = "t2.large"
   subnet_id                   = aws_subnet.public_subnet[1].id
   key_name                    = aws_key_pair.public_key.key_name
   vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
@@ -479,11 +479,11 @@ resource "aws_instance" "jenkins" {
     newrelic_account_id = var.newrelic_account_id
     region              = var.region
   })
-  # root_block_device {
-  #   volume_size = 100
-  #   volume_type = "gp3"
-  #   encrypted   = true
-  # }
+  root_block_device {
+    volume_size = 100
+    volume_type = "gp3"
+    encrypted   = true
+  }
   tags = {
     Name = "${local.name}-jenkins"
   }
