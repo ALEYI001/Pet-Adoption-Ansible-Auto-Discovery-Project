@@ -22,11 +22,13 @@ resource "aws_launch_template" "stage_launch_config" {
   image_id               = data.aws_ami.redhat.id
   instance_type          = "t2.medium"
   key_name               = var.key
-  vpc_security_group_ids = [aws_security_group.stage_sg.id]
   user_data = base64encode(templatefile("${path.module}/docker.sh", {
     newrelic_api_key    = var.newrelic_api_key,
     newrelic_account_id = var.newrelic_account_id
   }))
+  network_interfaces {
+    security_groups = [aws_security_group.stage_sg.id]
+  }
   lifecycle {create_before_destroy = true}
   tag_specifications {
     resource_type = "instance"
@@ -149,6 +151,7 @@ resource "aws_lb_target_group" "stage_atg" {
   port     = 8080
   protocol = "HTTP"
   vpc_id   = var.vpc_id
+  target_type = "instance"
   health_check {
     path                = "/"
     protocol            = "HTTP"
@@ -161,6 +164,18 @@ resource "aws_lb_target_group" "stage_atg" {
     Name = "${var.name}-atg"
   }
 }
+
+# HTTP Listener
+resource "aws_lb_listener" "stage_http_listener" {
+  load_balancer_arn = aws_lb.stage_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.stage_atg.arn
+  }
+}
+
 # HTTP Listener
 resource "aws_lb_listener" "stage_https_listener" {
   load_balancer_arn = aws_lb.stage_alb.arn
