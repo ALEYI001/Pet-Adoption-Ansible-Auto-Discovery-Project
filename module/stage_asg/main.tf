@@ -1,7 +1,37 @@
-# Get the latest RHEL 9 AMI for us-east-1 (Red Hat official account)
+#stage security group
+resource "aws_security_group" "stage-sg" {
+  name        = "${var.name}-stage-sg"
+  description = "stage Security group"
+  vpc_id      = var.vpc_id
+  ingress {
+    description     = "SSH access from bastion"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [var.bastion_sg, var.ansible_sg]
+  }
+
+  ingress {
+    description = "HTTP access from ALB"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    security_groups = [aws_security_group.stage-elb-sg.id]
+  }
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "${var.name}-stage-sg"
+  }
+}
 data "aws_ami" "redhat" {
   most_recent = true
-  owners      = ["309956199498"] # Red Hat official AWS account
+  owners      = ["309956199498"] # RedHat's owner ID
   filter {
     name   = "name"
     values = ["RHEL-9*"]
@@ -15,182 +45,139 @@ data "aws_ami" "redhat" {
     values = ["x86_64"]
   }
 }
-
-//creating launch template 
-resource "aws_launch_template" "stage_launch_config" {
-  name                   = "${var.name}-stage-asg-config"
-  image_id               = data.aws_ami.redhat.id
-  instance_type          = "t2.medium"
-  key_name               = var.key
+# Create Launch Template
+resource "aws_launch_template" "stage_lnch_tmpl" {
+  image_id      = data.aws_ami.redhat.id
+  name_prefix   = "${var.name}-stage-web-tmpl"
+  instance_type = "t2.medium"
+  key_name      = var.key
   user_data = base64encode(templatefile("${path.module}/docker.sh", {
-    newrelic_api_key    = var.newrelic_api_key,
-    newrelic_account_id = var.newrelic_account_id
+    nr-key     = var.newrelic_api_key,
+    nr-acct-id = var.newrelic_account_id
   }))
+
   network_interfaces {
-    security_groups = [aws_security_group.stage_sg.id]
+    security_groups = [aws_security_group.stage-sg.id]
   }
-  lifecycle {create_before_destroy = true}
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name = "${var.name}-stage-asg-config"
-    }
+  metadata_options {
+    http_tokens = "required"
   }
 }
 
-# Autoscaling group for the application
-resource "aws_autoscaling_group" "stage_asg" {
+# Create Auto Scaling Group
+resource "aws_autoscaling_group" "stage_autoscaling_grp" {
   name                      = "${var.name}-stage-asg"
   max_size                  = 3
   min_size                  = 1
   desired_capacity          = 1
+  health_check_grace_period = 120
   health_check_type         = "EC2"
-  health_check_grace_period = 30
-  vpc_zone_identifier       = var.private_subnets
-  target_group_arns = [aws_lb_target_group.stage_atg.arn]
   force_delete              = true
   launch_template {
-    id      = aws_launch_template.stage_launch_config.id
+    id      = aws_launch_template.stage_lnch_tmpl.id
     version = "$Latest"
   }
+  vpc_zone_identifier = var.private_subnets
+  target_group_arns   = [aws_lb_target_group.stage-target-group.arn]
+
   tag {
     key                 = "Name"
     value               = "${var.name}-stage-asg"
     propagate_at_launch = true
   }
 }
-
-# auto scaling policy
-resource "aws_autoscaling_policy" "stage_scale_out" {
-  name                   = "${var.name}-Stage-scale-out-policy"
+# Created autoscaling group policy
+resource "aws_autoscaling_policy" "stage-asg-policy" {
+  name                   = "${var.name}-asg-policy"
   adjustment_type        = "ChangeInCapacity"
-  autoscaling_group_name = aws_autoscaling_group.stage_asg.name
+  autoscaling_group_name = aws_autoscaling_group.stage_autoscaling_grp.name
   policy_type            = "TargetTrackingScaling"
   target_tracking_configuration {
-    target_value = 70.0
     predefined_metric_specification {
       predefined_metric_type = "ASGAverageCPUUtilization"
     }
+    target_value = 70.0
   }
 }
 
-# Create Security Group for ASG instances
-resource "aws_security_group" "stage_sg" {
-  name        = "${var.name}-stage-sg"
-  description = "Allow inbound SSH and HTTP traffic"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description     = "ssh port"
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [var.ansible_sg, var.bastion_sg]
+# Create Application Load Balancer for stage
+resource "aws_lb" "stage_LB" {
+  name               = "${var.name}-stage-LB"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.stage-elb-sg.id]
+  subnets            = var.public_subnets
+  tags = {
+    Name = "${var.name}-stage-LB"
   }
+}
+#stage-elb security group
+resource "aws_security_group" "stage-elb-sg" {
+  name        = "${var.name}-stage-elb-sg"
+  description = "stage-elb Security group"
+  vpc_id      = var.vpc_id
   ingress {
-    description = "application port"
-    from_port   = 8080
-    to_port     = 8080
+    description = "HTTP access from ALB"
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    description = "outbound traffic"
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "${var.name}-stage-sg"
+    Name = "${var.name}-stage-elb-sg"
   }
 }
 
-
-# Security Group for the application Load Balancer
-resource "aws_security_group" "alb_sg" {
-  name        = "${var.name}-alb-sg"
-  description = "Allow inbound HTTP and HTTPS traffic"
+#Create Target group for load Balancer
+resource "aws_lb_target_group" "stage-target-group" {
+  name        = "${var.name}-stage-tg"
+  port        = 8080
+  protocol    = "HTTP"
   vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # allow HTTPS
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # outbound allowed
-  }
-
-  tags = {
-    Name = "${var.name}alb-sg"
-  }
-}
-
-# Create application load balancer
-resource "aws_lb" "stage_alb" {
-  name               = "${var.name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = var.public_subnets
-  enable_deletion_protection = false
-  tags = {
-    Name = "${var.name}-alb"
-  }
-}
-
-# Target Group for ALB → ASG instances
-resource "aws_lb_target_group" "stage_atg" {
-  name     = "${var.name}-atg"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
   target_type = "instance"
   health_check {
-    path                = "/"
-    protocol            = "HTTP"
-    interval            = 30 
-    timeout             = 5
     healthy_threshold   = 3
     unhealthy_threshold = 5
+    interval            = 30
+    timeout             = 5
+    path                = "/"
   }
   tags = {
-    Name = "${var.name}-atg"
+    Name = "${var.name}-stage-tg"
   }
 }
 
-# HTTP Listener
-resource "aws_lb_listener" "stage_http_listener" {
-  load_balancer_arn = aws_lb.stage_alb.arn
-  port              = 80
+# Create load balance listener for http
+resource "aws_lb_listener" "stage_load_balancer_listener_http" {
+  load_balancer_arn = aws_lb.stage_LB.arn
+  port              = "80"
   protocol          = "HTTP"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.stage_atg.arn
+    target_group_arn = aws_lb_target_group.stage-target-group.arn
   }
 }
-
-# HTTP Listener
-resource "aws_lb_listener" "stage_https_listener" {
-  load_balancer_arn = aws_lb.stage_alb.arn
-  port              = 443
+# Create load balance listener for https
+resource "aws_lb_listener" "stage_load_balancer_listener_https" {
+  load_balancer_arn = aws_lb.stage_LB.arn
+  port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   certificate_arn   = data.aws_acm_certificate.acm-cert.arn
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.stage_atg.arn
+    target_group_arn = aws_lb_target_group.stage-target-group.arn
   }
 }
-
-# Create a Public Route 53 Hosted Zone
-data "aws_route53_zone" "hosted-zone" {
+# Create Route 53 record for stage server
+data "aws_route53_zone" "team2-acp-zone" {
   name         = var.domain_name
   private_zone = false
 }
@@ -201,14 +188,14 @@ data "aws_acm_certificate" "acm-cert" {
   statuses = ["ISSUED"]
 }
 
-#Create DNS Record for Application Load Balancer
-resource "aws_route53_record" "stage_record" {
-  zone_id = data.aws_route53_zone.hosted-zone.zone_id
-  name    ="stage.${var.domain_name}"
+# Create Route 53 record for stage server
+resource "aws_route53_record" "stage-record" {
+  zone_id = data.aws_route53_zone.team2-acp-zone.zone_id
+  name    = "stage.${var.domain_name}"
   type    = "A"
   alias {
-    name                   = aws_lb.stage_alb.dns_name
-    zone_id                = aws_lb.stage_alb.zone_id
+    name                   = aws_lb.stage_LB.dns_name
+    zone_id                = aws_lb.stage_LB.zone_id
     evaluate_target_health = true
   }
 }
