@@ -1,3 +1,3 @@
 output "stage_sg" {
-  value = aws_security_group.stage_sg.id
+  value = aws_security_group.stage-sg.id
 }

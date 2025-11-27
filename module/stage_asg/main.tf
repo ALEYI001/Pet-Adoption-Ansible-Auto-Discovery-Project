@@ -52,8 +52,8 @@ resource "aws_launch_template" "stage_lnch_tmpl" {
   instance_type = "t2.medium"
   key_name      = var.key
   user_data = base64encode(templatefile("${path.module}/docker.sh", {
-    nr-key     = var.newrelic_api_key,
-    nr-acct-id = var.newrelic_account_id
+    newrelic_api_key     = var.newrelic_api_key,
+    newrelic_account_id = var.newrelic_account_id
   }))
 
   network_interfaces {
