@@ -114,7 +114,7 @@ process_instance() {
             echo "$DOCKER_PASSWORD" | docker login $DOCKER_REPO -u "$DOCKER_USER" --password-stdin || exit 1
             
             # Pull latest image with timeout
-            timeout 300 docker pull $DOCKER_REPO/$APP_IMAGE || exit 1
+            timeout 300 docker pull $APP_IMAGE || exit 1
             
             # Check for existing container and remove if stopped
             if docker ps -a | grep -q appContainer; then
@@ -122,7 +122,7 @@ process_instance() {
             fi
             
             # Run container
-            docker run -d --name appContainer -p 8080:8080 --restart unless-stopped $DOCKER_REPO/$APP_IMAGE || exit 1
+            docker run -d --name appContainer -p 8080:8080 --restart unless-stopped $APP_IMAGE || exit 1
             
             # Verify container is running
             if docker ps | grep -q appContainer; then
