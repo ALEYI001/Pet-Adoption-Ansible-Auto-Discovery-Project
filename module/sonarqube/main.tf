@@ -26,7 +26,7 @@ resource "aws_security_group" "sonarqube_sg" {
 }
 
 
-## Security Group for SonarQube Server ##
+## Security Group for load balancer ##
 resource "aws_security_group" "sonarqube_sg_elb" {
   name        = "${var.name}-sonarqube-sg-elb"
   description = "Allow SSH, HTTP (Nginx), and HTTPS access"
