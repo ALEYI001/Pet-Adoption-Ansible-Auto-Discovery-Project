@@ -6,7 +6,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket       = "inans-aleyi-bucket"
+    bucket       = "inans-bucket"
     key          = "utility/terraform.tfstate"
     region       = "us-east-1"
     #profile      = "pet_team"
