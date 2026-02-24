@@ -14,7 +14,7 @@ data "vault_generic_secret" "secrets" {
 
 terraform {
   backend "s3" {
-    bucket       = "inans-aleyi-bucket"
+    bucket       = "inans-bucket"
     key          = "infra/terraform.tfstate"
     region       = "us-east-1"
     #profile      = "pet_team"

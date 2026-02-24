@@ -25,5 +25,5 @@ variable "domain_name" {
 variable "s3_bucket_name" {
   description = "S3 bucket name for storing Ansible playbooks"
   type        = string
-  default     = "inans-aleyi-bucket"
+  default     = "inans-bucket"
 }
