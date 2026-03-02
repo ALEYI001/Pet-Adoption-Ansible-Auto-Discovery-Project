@@ -21,6 +21,7 @@ It implements:
 ############################################################
 
 Architecture Highlights
+
 •	Multi-AZ deployment (High Availability)
 •	Public and Private subnet segmentation
 •	Bastion-controlled administrative access
