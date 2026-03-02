@@ -78,34 +78,34 @@ Pipeline Flow:
 DevSecOps Integration
 
 Security is embedded into the pipeline:
-•	Code scanning (Chekov)
-•	Static scanning (Sonarqube)
-•	Container scanning (Trivy)
-•	Dynamic app security testing (OWASP ZAP)
-•	Secrets management (Vault)
-•	Network isolation (Private subnets)
-•	Least privilege access controls
+1. Code scanning (Chekov)
+2. Static scanning (Sonarqube)
+3. Container scanning (Trivy)
+4. Dynamic app security testing (OWASP ZAP)
+5. Secrets management (Vault)
+6. Network isolation (Private subnets)
+7. Least privilege access controls
 
 ############################################################
 
 Monitoring
-•	New Relic for observability
-•	Slack integration for alerts
+New Relic for observability
+Slack integration for alerts
 
 ############################################################
 
 Techstack
-•	AWS (EC2, VPC, ASG, ELB)
-•	Terraform
-•	Jenkins
-•	Docker
-•	Ansible
-•	Nexus
-•	Vault
-•	Trivy
-•	OWASP ZAP
-•	MongoDB
-•	MySQL
+1. AWS (EC2, VPC, ASG, ELB)
+2. Terraform
+3. Jenkins
+4. Docker
+5. Ansible
+6. Nexus
+7. Vault
+8. Trivy
+9. OWASP ZAP
+10. MongoDB
+11. MySQL
 
 ############################################################
 
