@@ -1,6 +1,7 @@
 #############################################################
 Pet Adoption Auto-Discovery Platform Techinical Overview
 #############################################################
+
 This repository contains the Infrastructure as Code (IaC) and configuration management files for the Pet Adoption application.Key features; Production-grade, highly available DevSecOps architecture deployed on AWS using Terraform, Jenkins, Docker, Ansible, and integrated security tooling.
 
 
@@ -16,6 +17,7 @@ It implements:
 •	Configuration management with Ansible
 •	Artifact repository with Nexus
 •	Monitoring & Alerting
+
 ############################################################
 Architecture Highlights
 •	Multi-AZ deployment (High Availability)
@@ -26,6 +28,7 @@ Architecture Highlights
 •	MongoDB & MySQL in private subnets
 •	Secrets management with Vault
 •	Security scanning (Checkov, Sonar, Trivy & OWASP ZAP)
+
 ############################################################
 Architecture Overview
 The infrastructure is deployed within the us-east-1 region across two Availability Zones (AZs) for redundancy. It utilizes a dual-VPC strategy to separate management tools from application resources.
@@ -52,6 +55,7 @@ Prod ASG: The live production environment.
 Ansible: Located in Private Subnet 1, it performs Auto Discovery and configuration management for the ASGs.
 
 Database Layer: A Master-Slave (M/S) relational database setup for data persistence and failover.
+
 ############################################################
 🔄 CI/CD Pipeline
 Pipeline Flow:
@@ -75,10 +79,12 @@ Security is embedded into the pipeline:
 •	Secrets management (Vault)
 •	Network isolation (Private subnets)
 •	Least privilege access controls
+
 ############################################################
 📊 Monitoring
 •	New Relic for observability
 •	Slack integration for alerts
+
 ############################################################
 🚀 Techstack
 •	AWS (EC2, VPC, ASG, ELB)
@@ -92,9 +98,10 @@ Security is embedded into the pipeline:
 •	OWASP ZAP
 •	MongoDB
 •	MySQL
+
 ############################################################
 DevOps Workflow
-############################################################
+
 Trigger: Developers push code or devops engineers push infrastructure changes to GitHub.
 
 Continuous Integration: Jenkins pulls the code and runs the pipeline:
@@ -114,15 +121,17 @@ Ansible uses Auto Discovery to identify new EC2 instances in the ASGs.
 Ansible pulls playbooks from S3 and deploys the latest artifacts from Nexus to the Stage/Prod targets.
 
 Monitoring & Feedback: New Relic monitors performance, and Slack provides real-time notifications to the team.
+
 ############################################################
 Additional documents
 1. Architectural Justification Document:
 2. Projects Challenges & Solutions:
 3. Design Trade Offs:
 4. Business Value Statement:
+   
 ############################################################
-👨🏽‍💻 Author
 
+👨🏽‍💻 Author
 Aleyi, Inalegwu
 Cloud / DevOps Engineer
 ############################################################
