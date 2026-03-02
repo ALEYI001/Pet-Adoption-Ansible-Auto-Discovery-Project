@@ -76,6 +76,7 @@ Pipeline Flow:
 ############################################################
 
 DevSecOps Integration
+
 Security is embedded into the pipeline:
 •	Code scanning (Chekov)
 •	Static scanning (Sonarqube)
