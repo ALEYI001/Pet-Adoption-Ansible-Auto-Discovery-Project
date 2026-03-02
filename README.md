@@ -4,7 +4,7 @@ Pet Adoption Auto-Discovery Platform Techinical Overview
 This repository contains the Infrastructure as Code (IaC) and configuration management files for the Pet Adoption application.Key features; Production-grade, highly available DevSecOps architecture deployed on AWS using Terraform, Jenkins, Docker, Ansible, and integrated security tooling.
 
 
-############################################################
+
 📌 Project Overview
 This project demonstrates the design and deployment of a scalable, secure, multi-AZ cloud infrastructure for a containerized pet adoption application.
 It implements:
