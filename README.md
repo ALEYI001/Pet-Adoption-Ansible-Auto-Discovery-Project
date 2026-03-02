@@ -19,6 +19,7 @@ It implements:
 •	Monitoring & Alerting
 
 ############################################################
+
 Architecture Highlights
 •	Multi-AZ deployment (High Availability)
 •	Public and Private subnet segmentation
@@ -30,6 +31,7 @@ Architecture Highlights
 •	Security scanning (Checkov, Sonar, Trivy & OWASP ZAP)
 
 ############################################################
+
 Architecture Overview
 The infrastructure is deployed within the us-east-1 region across two Availability Zones (AZs) for redundancy. It utilizes a dual-VPC strategy to separate management tools from application resources.
 1. Utility VPC (utility-vpc)
@@ -57,7 +59,8 @@ Ansible: Located in Private Subnet 1, it performs Auto Discovery and configurati
 Database Layer: A Master-Slave (M/S) relational database setup for data persistence and failover.
 
 ############################################################
-🔄 CI/CD Pipeline
+
+CI/CD Pipeline
 Pipeline Flow:
 1.	Code push to GitHub
 2.	Jenkins triggers pipeline
@@ -70,7 +73,8 @@ Pipeline Flow:
 9.	Deploy to Stage
 10.  Promote to production
 ############################################################
-🔐 DevSecOps Integration
+
+DevSecOps Integration
 Security is embedded into the pipeline:
 •	Code scanning (Chekov)
 •	Static scanning (Sonarqube)
@@ -81,12 +85,14 @@ Security is embedded into the pipeline:
 •	Least privilege access controls
 
 ############################################################
-📊 Monitoring
+
+Monitoring
 •	New Relic for observability
 •	Slack integration for alerts
 
 ############################################################
-🚀 Techstack
+
+Techstack
 •	AWS (EC2, VPC, ASG, ELB)
 •	Terraform
 •	Jenkins
@@ -100,7 +106,8 @@ Security is embedded into the pipeline:
 •	MySQL
 
 ############################################################
-DevOps Workflow
+
+DevOps Workflow;
 
 Trigger: Developers push code or devops engineers push infrastructure changes to GitHub.
 
@@ -123,6 +130,7 @@ Ansible pulls playbooks from S3 and deploys the latest artifacts from Nexus to t
 Monitoring & Feedback: New Relic monitors performance, and Slack provides real-time notifications to the team.
 
 ############################################################
+
 Additional documents
 1. Architectural Justification Document:
 2. Projects Challenges & Solutions:
@@ -131,7 +139,7 @@ Additional documents
    
 ############################################################
 
-👨🏽‍💻 Author
+👨🏽‍💻Author
 Aleyi, Inalegwu
 Cloud / DevOps Engineer
 ############################################################
