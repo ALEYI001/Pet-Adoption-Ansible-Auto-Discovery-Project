@@ -3,7 +3,7 @@ locals {
   name = "utility"
 }
 
-# Create a default VPC for vault server
+# Create a default VPC for the utility server (vault and jenkins) to run in
 resource "aws_vpc" "vpc" {
   cidr_block           = "10.0.0.0/16" # CIDR block for the VPC
   enable_dns_support   = true
@@ -94,6 +94,10 @@ data "aws_ami" "ubuntu" {
     values = ["x86_64"]
   }
 }
+
+################################
+# Vault Server Infrastructure #
+################################
 
 # IAM role for Vault EC2 instance
 resource "aws_iam_role" "vault_ec2_role" {
