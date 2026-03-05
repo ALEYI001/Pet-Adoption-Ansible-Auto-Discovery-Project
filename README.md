@@ -1,6 +1,6 @@
 ################
 Pet Adoption Auto-Discovery Platform Techinical Overview
-#############################################################
+######################################
 
 This repository contains the Infrastructure as Code (IaC) and configuration management files for the Pet Adoption application.Key features; Production-grade, highly available DevSecOps architecture deployed on AWS using Terraform, Jenkins, Docker, Ansible, and integrated security tooling.
 
@@ -133,11 +133,24 @@ Monitoring & Feedback: New Relic monitors performance, and Slack provides real-t
 
 ############################################################
 
-Additional documents
-1. Architectural Justification Document:
-2. Projects Challenges & Solutions:
-3. Design Trade Offs:
-4. Business Value Statement:
+Important additional documents
+1. Architectural Justification Document:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/ArchitectureJustificationDocument.pdf)
+Or 
+[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/ArchitectureJustificationDocument.docx)
+
+
+2. Projects Challenges & Solutions:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/ChallengesAndSolutions.pdf)
+Or 
+[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/ChallengesAndSolutions.docx)
+
+3. Design Trade Offs:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/DesignTradeOffs.pdf)
+Or 
+[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/DesignTradeOffs.docx)
+
+4. Business Value Statement:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/BusinessValueStatement.pdf)
+Or 
+[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/BusinessValueStatement.docx)
+
    
 ############################################################
 
