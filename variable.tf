@@ -7,7 +7,7 @@ variable "newrelic_api_key" {
 variable "vault_token" {
   description = "Vault token for accessing secrets"
   type        = string
-  default     = "hvs.R2xpvyk7qCL1F2QjGoEuLYMN"
+  default     = "hvs.lJAvMoAIOTiJPiweyRlIrdHi"
 }
 
 variable "newrelic_account_id" {
