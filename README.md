@@ -1,160 +1,189 @@
-################
-Pet Adoption Auto-Discovery Platform Techinical Overview
-######################################
+# Pet Adoption Auto-Discovery Platform – Technical Overview
 
-This repository contains the Infrastructure as Code (IaC) and configuration management files for the Pet Adoption application.Key features; Production-grade, highly available DevSecOps architecture deployed on AWS using Terraform, Jenkins, Docker, Ansible, and integrated security tooling.
+This repository contains the **Infrastructure as Code (IaC)** and configuration management files for the **Pet Adoption Application**.
 
+Key features include a **production-grade, highly available DevSecOps architecture** deployed on AWS using **Terraform, Jenkins, Docker, Ansible**, and integrated security tooling.
 
+---
 
-📌 Project Overview
-This project demonstrates the design and deployment of a scalable, secure, multi-AZ cloud infrastructure for a containerized pet adoption application.
+# 📌 Project Overview
+
+This project demonstrates the design and deployment of a **scalable, secure, multi-AZ cloud infrastructure** for a containerized pet adoption application.
+
 It implements:
-•	Infrastructure as Code (Terraform)
-•	CI/CD automation (Jenkins)
-•	DevSecOps integration
-•	Auto Scaling & Load Balancing
-•	Multi-AZ high availability
-•	Configuration management with Ansible
-•	Artifact repository with Nexus
-•	Monitoring & Alerting
 
-############################################################
+- Infrastructure as Code (**Terraform**)
+- CI/CD automation (**Jenkins**)
+- **DevSecOps** integration
+- **Auto Scaling & Load Balancing**
+- **Multi-AZ High Availability**
+- Configuration management with **Ansible**
+- Artifact repository with **Nexus**
+- **Monitoring & Alerting**
 
-Architecture Highlights
+---
 
-•	Multi-AZ deployment (High Availability)
-•	Public and Private subnet segmentation
-•	Bastion-controlled administrative access
-•	Auto Scaling Groups (Stage & Production)
-•	Elastic Load Balancer
-•	MongoDB & MySQL in private subnets
-•	Secrets management with Vault
-•	Security scanning (Checkov, Sonar, Trivy & OWASP ZAP)
+# Architecture Highlights
 
-############################################################
+- Multi-AZ deployment (**High Availability**)
+- Public and Private subnet segmentation
+- Bastion-controlled administrative access
+- Auto Scaling Groups (**Stage & Production**)
+- Elastic Load Balancer
+- MongoDB & MySQL in private subnets
+- Secrets management with **Vault**
+- Security scanning (**Checkov, SonarQube, Trivy & OWASP ZAP**)
 
-Architecture Overview
-The infrastructure is deployed within the us-east-1 region across two Availability Zones (AZs) for redundancy. It utilizes a dual-VPC strategy to separate management tools from application resources.
-1. Utility VPC (utility-vpc)
-This VPC acts as the control plane for the entire operation. It houses:
+---
 
-Jenkins: The primary CI/CD engine responsible for orchestration.
+# Architecture Overview
 
-HashiCorp Vault: Manages secrets, API keys, and certificates securely.
+The infrastructure is deployed within the **us-east-1** region across **two Availability Zones (AZs)** for redundancy.
 
-Integrated Toolchain: Includes Maven (build), Checkov/Terraform (IaC/Security), SonarQube (Static Analysis), Nexus (Artifact Registry), and security scanners like Trivy, OWASP Dependency Check, and Zap.
+It utilizes a **dual-VPC strategy** to separate management tools from application resources.
 
-2. Infrastructure VPC (infrastructure-vpc)
-The environment where the application lives, divided into tiers:
+---
 
-Public Subnets: Host the Bastion Auto Scaling Group (ASG) for secure administrative access and SonarQube/Nexus for analysis and storage.
+## 1. Utility VPC (`utility-vpc`)
 
-Private Subnets: Host the application logic to prevent direct internet exposure.
+This VPC acts as the **control plane** for the entire operation.
 
-Stage ASG: For pre-production testing and validation.
+It houses:
 
-Prod ASG: The live production environment.
+- **Jenkins** – Primary CI/CD engine responsible for orchestration  
+- **HashiCorp Vault** – Secure management of secrets, API keys, and certificates  
 
-Ansible: Located in Private Subnet 1, it performs Auto Discovery and configuration management for the ASGs.
+### Integrated Toolchain
 
-Database Layer: A Master-Slave (M/S) relational database setup for data persistence and failover.
+- **Maven** – Application build
+- **Checkov / Terraform** – IaC validation & security
+- **SonarQube** – Static code analysis
+- **Nexus** – Artifact registry
+- **Trivy** – Container security scanning
+- **OWASP Dependency Check**
+- **OWASP ZAP** – Dynamic application security testing
 
-############################################################
+---
 
-CI/CD Pipeline
-Pipeline Flow:
-1.	Code push to GitHub
-2.	Jenkins triggers pipeline
-3.	Docker image build
-4.	Security scanning
-5.	Push artifact to Nexus
-6.	Terraform infrastructure provisioning
-7.	Ansible configuration
-8.  Security Scanning 
-9.	Deploy to Stage
-10.  Promote to production
-############################################################
+## 2. Infrastructure VPC (`infrastructure-vpc`)
 
-DevSecOps Integration
+This VPC hosts the **application runtime environment**.
 
-Security is embedded into the pipeline:
-1. Code scanning (Chekov)
-2. Static scanning (Sonarqube)
-3. Container scanning (Trivy)
-4. Dynamic app security testing (OWASP ZAP)
-5. Secrets management (Vault)
-6. Network isolation (Private subnets)
-7. Least privilege access controls
+### Public Subnets
 
-############################################################
+- Bastion **Auto Scaling Group (ASG)** for secure administrative access
+- **SonarQube & Nexus** for analysis and artifact storage
 
-Monitoring
-New Relic for observability
-Slack integration for alerts
+### Private Subnets
 
-############################################################
+Hosts the application services to **prevent direct internet exposure**.
 
-Techstack
-1. AWS (EC2, VPC, ASG, ELB)
-2. Terraform
-3. Jenkins
-4. Docker
-5. Ansible
-6. Nexus
-7. Vault
-8. Trivy
-9. OWASP ZAP
-10. MongoDB
-11. MySQL
+Components include:
 
-############################################################
+- **Stage ASG** – Pre-production testing and validation
+- **Prod ASG** – Live production environment
 
-DevOps Workflow;
+### Configuration Management
 
-Trigger: Developers push code or devops engineers push infrastructure changes to GitHub.
+- **Ansible** (located in Private Subnet 1)
+- Performs **Auto Discovery and configuration management** for instances inside the ASGs
 
-Continuous Integration: Jenkins pulls the code and runs the pipeline:
+### Database Layer
 
-Scan: Checkov and Trivy audit the Terraform and Docker images.
+- **Master–Slave relational database architecture**
+- Provides **data persistence and failover capability**
 
-Build: Maven compiles the application.
+---
 
-Test: Unit tests and SonarQube quality gates are applied.
+# CI/CD Pipeline
 
-Artifact Storage: Built images/binaries are pushed to Nexus.
+### Pipeline Flow
 
-Continuous Deployment: * Terraform updates the VPC and ASG infrastructure.
+1. Code push to **GitHub**
+2. **Jenkins** triggers pipeline
+3. **Docker** image build
+4. Security scanning
+5. Push artifact to **Nexus**
+6. **Terraform** infrastructure provisioning
+7. **Ansible** configuration
+8. Security scanning
+9. Deploy to **Stage**
+10. Promote to **Production**
 
-Ansible uses Auto Discovery to identify new EC2 instances in the ASGs.
+---
 
-Ansible pulls playbooks from S3 and deploys the latest artifacts from Nexus to the Stage/Prod targets.
+# DevSecOps Integration
 
-Monitoring & Feedback: New Relic monitors performance, and Slack provides real-time notifications to the team.
+Security is embedded throughout the pipeline:
 
-############################################################
+1. Code scanning (**Checkov**)
+2. Static code analysis (**SonarQube**)
+3. Container scanning (**Trivy**)
+4. Dynamic application security testing (**OWASP ZAP**)
+5. Secrets management (**Vault**)
+6. Network isolation (**Private Subnets**)
+7. Least privilege **access control policies**
 
-Important additional documents
-1. Architectural Justification Document:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/ArchitectureJustificationDocument.pdf)
-Or 
-[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/ArchitectureJustificationDocument.docx)
+---
 
+# Monitoring
 
-2. Projects Challenges & Solutions:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/ChallengesAndSolutions.pdf)
-Or 
-[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/ChallengesAndSolutions.docx)
+- **New Relic** – Observability and performance monitoring
+- **Slack Integration** – Alerting and operational notifications
 
-3. Design Trade Offs:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/DesignTradeOffs.pdf)
-Or 
-[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/DesignTradeOffs.docx)
+---
 
-4. Business Value Statement:[![PDF](https://img.shields.io/badge/Documentation-PDF-red)](./docs/BusinessValueStatement.pdf)
-Or 
-[![Word Doc](https://img.shields.io/badge/Documentation-Word-blue)](./docs/BusinessValueStatement.docx)
+# Tech Stack
 
-   
-############################################################
+- AWS (**EC2, VPC, ASG, ELB**)
+- Terraform
+- Jenkins
+- Docker
+- Ansible
+- Nexus
+- Vault
+- Trivy
+- OWASP ZAP
+- MongoDB
+- MySQL
 
-👨🏽‍💻Author
-Aleyi, Inalegwu
-Cloud / DevOps Engineer
-############################################################
+---
+
+# DevOps Workflow
+
+### Trigger
+
+Developers push application code or DevOps engineers push infrastructure changes to **GitHub**.
+
+---
+
+### Continuous Integration
+
+Jenkins pulls the repository and executes the pipeline:
+
+**Scan**
+
+- Checkov audits Terraform configurations
+- Trivy scans Docker images
+
+**Build**
+
+- Maven compiles the application
+
+**Test**
+
+- Unit tests run
+- **SonarQube quality gates** applied
+
+**Artifact Storage**
+
+- Built images/binaries are pushed to **Nexus**
+
+---
+
+### Continuous Deployment
+
+- **Terraform** updates infrastructure (VPC, ASGs, networking)
+- **Ansible Auto Discovery** identifies new EC2 instances inside ASGs
+- Ansible pulls **playbooks from S3**
+- Latest artifacts are deploye
